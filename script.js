@@ -1,105 +1,220 @@
-/* ============================= */
-/* VARIÁVEIS DO TEMA (GERAL)     */
-/* ============================= */
-:root {
-    --bg-main: #f4f7fa;
-    --bg-sidebar: #ffffff;
-    --bg-content-primary: #ffffff;
-    --bg-content-secondary: #f4f7fa;
-    --bg-hover: #eef2f7;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-on-accent: #ffffff;
-    --border-color: #e2e8f0;
-    --shadow-color: rgba(100, 116, 139, 0.12);
-    --accent-primary: #3b82f6;
-    --accent-primary-hover: #2563eb;
-    --accent-positive: #22c55e;
-    --accent-negative: #ef4444;
-    --priority-high: #ef4444;
-    --priority-medium: #f59e0b;
-    --priority-low: #22c55e;
-}
+document.addEventListener('DOMContentLoaded', () => {
 
-body.dark-mode {
-    --bg-main: #0f172a;
-    --bg-sidebar: #1e293b;
-    --bg-content-primary: #1e293b;
-    --bg-content-secondary: #0f172a;
-    --bg-hover: #334155;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --border-color: #334155;
-    --shadow-color: rgba(0, 0, 0, 0.2);
-}
+    // ==================================================================
+    // --- CONFIGURAÇÃO DO SUPABASE ---
+    // ==================================================================
+    const SUPABASE_URL = 'https://hmcuzsbfuvwbdemjbcpsa.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhtY3V6c2JmdXZ3YmRlbWJjcHNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0OTY3NTAsImV4cCI6MjA3MTA3Mjc1MH0.hbp39F3cD24LhyV3bv_pI4nQrGipPN9495QiUqPwa0w';
 
-/* ESTILOS GLOBAIS */
-body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-primary); margin: 0; height: 100vh; overflow: hidden; }
-* { box-sizing: border-box; }
-.app-container, #auth-view { width: 100%; height: 100vh; }
-.main-content, .main-view { width: 100%; height: 100%; display: flex; overflow: hidden; }
-.view-hidden { display: none !important; }
+    const { createClient } = supabase;
+    const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* TELA DE AUTENTICAÇÃO */
-#auth-view { display: flex; justify-content: center; align-items: center; }
-.auth-layout { width: 100%; max-width: 960px; margin: 20px; display: flex; border-radius: 16px; overflow: hidden; background-color: var(--bg-content-primary); box-shadow: 0 10px 40px var(--shadow-color); }
-.auth-panel { width: 50%; padding: 50px; }
-.auth-form-panel { display: flex; flex-direction: column; justify-content: center; }
-.auth-showcase-panel { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-.showcase-content .material-symbols-outlined { font-size: 80px; }
-.showcase-content h3 { font-size: 28px; margin-top: 20px; }
-.showcase-content p { max-width: 300px; opacity: 0.8; }
-.auth-container h2 { text-align: left; margin: 0 0 8px 0; font-size: 28px; }
-.auth-container p { text-align: left; margin: 0 0 30px 0; color: var(--text-secondary); }
-.form-group { margin-bottom: 20px; }
-.form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
-.form-group input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-main); color: var(--text-primary); font-size: 16px; }
-.save-btn { width: 100%; padding: 12px; font-size: 16px; }
-.auth-toggle-link { font-size: 14px; text-align: center; margin-top: 25px; }
-.auth-toggle-link a { color: var(--accent-primary); text-decoration: none; font-weight: 500; }
-@media (max-width: 768px) { .auth-showcase-panel { display: none; } .auth-panel { width: 100%; } .auth-layout { max-width: 420px; } }
+    // ==================================================================
+    // --- SELEÇÃO DOS ELEMENTOS GLOBAIS ---
+    // ==================================================================
+    const authView = document.getElementById('auth-view');
+    const appView = document.getElementById('app-view');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const showRegisterLink = document.getElementById('show-register');
+    const showLoginLink = document.getElementById('show-login');
+    const signOutBtn = document.getElementById('sign-out-btn');
+    const notificationContainer = document.getElementById('notification-container');
+    
+    // Elementos da aplicação
+    const mainNav = document.querySelector('.main-nav ul');
+    const mainViews = document.querySelectorAll('.main-view');
+    const projectToggleBtn = document.getElementById('project-toggle-btn');
+    const projectsNavItem = document.getElementById('projects-nav-item');
+    const projectSubmenu = document.querySelector('.project-submenu');
+    const projectForm = document.getElementById('project-form');
+    const projectInput = document.getElementById('project-input');
+    const projectList = document.getElementById('project-list');
+    const currentProjectTitle = document.getElementById('current-project-title');
+    const taskCounter = document.getElementById('task-counter');
+    const taskForm = document.getElementById('task-form');
+    const kanbanBoard = document.getElementById('kanban-board');
+    const userAvatar = document.querySelector('.user-avatar');
+    const userNameSpan = document.querySelector('.sidebar-header span');
 
-/* SIDEBAR */
-.projects-sidebar { background-color: var(--bg-sidebar); width: 280px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
-.sidebar-header { display: flex; align-items: center; gap: 12px; padding: 20px; border-bottom: 1px solid var(--border-color); }
-.user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: var(--accent-primary); color: var(--text-on-accent); display: flex; align-items: center; justify-content: center; font-weight: bold; }
-.sidebar-header span { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.main-nav { padding: 10px; }
-.main-nav ul, .main-nav li { list-style: none; padding: 0; margin: 0; }
-.main-nav .nav-item > a { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 6px; text-decoration: none; color: var(--text-secondary); font-weight: 500; }
-.main-nav .nav-item > a:hover { background-color: var(--bg-hover); color: var(--text-primary); }
-.main-nav .nav-item.active > a { background-color: var(--accent-primary); color: var(--text-on-accent); }
-#project-toggle-btn .chevron { margin-left: auto; transition: transform 0.2s; }
-.nav-item.expanded #project-toggle-btn .chevron { transform: rotate(180deg); }
-.project-submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-.nav-item.expanded .project-submenu { max-height: 500px; } /* Adjust as needed */
-.project-list-container { padding: 10px 0 0 15px; }
-#project-form { display: flex; margin-bottom: 10px; }
-#project-form input { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 6px 0 0 6px; padding: 8px; font-size: 13px; background-color: var(--bg-main); color: var(--text-primary); }
-#project-form button { border-radius: 0 6px 6px 0; border: 1px solid var(--accent-primary); background-color: var(--accent-primary); color: var(--text-on-accent); cursor: pointer; width: 36px; }
-#project-list li { display: flex; padding: 8px 10px 8px 15px; border-radius: 6px; margin-bottom: 4px; cursor: pointer; font-size: 14px; }
-#project-list li:hover { background-color: var(--bg-hover); }
-#project-list li.active-project { background-color: var(--accent-primary-hover); color: var(--text-on-accent); }
-.sidebar-footer { padding: 10px; margin-top: auto; }
-.action-btn { width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 500; background-color: var(--bg-content-secondary); border: 1px solid var(--border-color); color: var(--text-primary); display: flex; align-items: center; justify-content: center; gap: 8px;}
+    // Elementos do Modal
+    const modalOverlay = document.getElementById('task-details-modal');
+    const modalCloseBtn = modalOverlay.querySelector('.modal-close-btn');
+    const modalTaskTitle = document.getElementById('modal-task-title');
+    const modalTaskDetails = document.getElementById('modal-task-details');
+    const commentForm = document.getElementById('comment-form');
+    const commentInput = document.getElementById('comment-input');
+    const commentList = document.getElementById('comment-list');
+    
+    // --- ESTRUTURA DE DADOS E ESTADO ---
+    let user = null;
+    let projects = [];
+    let tasks = [];
+    let activeProjectId = null;
+    let activeTask = null;
+    let globalStatusChart = null;
 
-/* KANBAN */
-.container { display: flex; flex-direction: column; flex-grow: 1; padding: 25px 35px; overflow: hidden; }
-#current-project-title { margin-bottom: 5px; font-size: 32px; font-weight: 700; }
-#task-counter { margin-top: 0; margin-bottom: 25px; color: var(--text-secondary); font-size: 16px; }
-#task-form { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-#task-input { flex-grow: 1; min-width: 200px; }
-#task-form input, #task-form select { padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-content-primary); color: var(--text-primary); }
-.add-btn { padding: 10px 15px; background-color: var(--accent-primary); color: var(--text-on-accent); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-#kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; flex-grow: 1; overflow-x: auto; padding-bottom: 10px; }
-.kanban-column { background-color: var(--bg-content-secondary); border-radius: 12px; display: flex; flex-direction: column; border: 1px solid var(--border-color); }
-.kanban-column h3 { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; margin: 0; color: var(--text-primary); border-bottom: 1px solid var(--border-color); font-size: 16px; }
-.tasks-container { flex-grow: 1; min-height: 150px; overflow-y: auto; padding: 15px; }
-.task-card { padding: 15px; background-color: var(--bg-content-primary); border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px var(--task-card-shadow); cursor: grab; border: 1px solid var(--border-color); }
-.task-card.dragging { opacity: 0.5; }
+    // ==================================================================
+    // --- LÓGICA DE AUTENTICAÇÃO ---
+    // ==================================================================
+    _supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session && session.user) {
+            user = session.user;
+            authView.classList.add('view-hidden');
+            appView.classList.remove('view-hidden');
+            userNameSpan.textContent = user.email;
+            userAvatar.textContent = user.email.charAt(0).toUpperCase();
+            await loadInitialData();
+        } else {
+            user = null;
+            authView.classList.remove('view-hidden');
+            appView.classList.add('view-hidden');
+        }
+    });
 
-/* NOTIFICAÇÕES */
-#notification-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; }
-.toast { padding: 12px 20px; border-radius: 8px; color: white; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-.toast.success { background-color: var(--accent-positive); }
-.toast.error { background-color: var(--accent-negative); }
+    registerForm.addEventListener('submit', async (e) => { e.preventDefault(); const email = document.getElementById('register-email').value; const password = document.getElementById('register-password').value; const { data, error } = await _supabase.auth.signUp({ email, password }); if (error) { showNotification(`Erro: ${error.message}`, 'error'); } else { showNotification('Conta criada! Verifique seu email para confirmação (se estiver ativo).', 'success'); showLoginLink.click(); } });
+    loginForm.addEventListener('submit', async (e) => { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; const { data, error } = await _supabase.auth.signInWithPassword({ email, password }); if (error) { showNotification(`Erro: ${error.message}`, 'error'); } });
+    signOutBtn.addEventListener('click', async () => { await _supabase.auth.signOut(); });
+    showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('login-form-container').classList.add('view-hidden'); document.getElementById('register-form-container').classList.remove('view-hidden'); });
+    showLoginLink.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('register-form-container').classList.add('view-hidden'); document.getElementById('login-form-container').classList.remove('view-hidden'); });
+
+    // ==================================================================
+    // --- LÓGICA DE NAVEGAÇÃO ---
+    // ==================================================================
+    const setActiveNav = (activeView) => {
+        mainNav.querySelectorAll('.nav-item').forEach(li => li.classList.remove('active'));
+        if (activeView === 'projects') {
+            projectsNavItem.classList.add('active');
+        } else {
+            const activeLink = mainNav.querySelector(`a[data-view="${activeView}"]`);
+            if (activeLink) {
+                activeLink.closest('.nav-item').classList.add('active');
+            }
+        }
+    };
+
+    const switchView = (viewName) => {
+        mainViews.forEach(view => view.classList.add('view-hidden'));
+        const viewToShow = document.getElementById(`view-${viewName}`);
+        if (viewToShow) {
+            viewToShow.classList.remove('view-hidden');
+        }
+        setActiveNav(viewName);
+        if (viewName === 'dashboard-full') renderGlobalDashboard();
+        // Adicionar chamadas para settings se for reintegrado
+    };
+
+    mainNav.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+        if (link.id === 'project-toggle-btn') {
+            e.preventDefault();
+            projectsNavItem.classList.toggle('expanded');
+        }
+        if (link.dataset.view) {
+            e.preventDefault();
+            switchView(link.dataset.view);
+        }
+    });
+
+    // ==================================================================
+    // --- LÓGICA DE DADOS (PROJETOS E TAREFAS com Supabase) ---
+    // ==================================================================
+    const loadInitialData = async () => {
+        if (!user) return;
+        await loadProjects();
+        if (projects.length > 0) {
+            const lastActive = localStorage.getItem(`lastActiveProject_${user.id}`);
+            const projectExists = projects.some(p => p.id == lastActive);
+            activeProjectId = projectExists ? parseInt(lastActive) : projects[0].id;
+            await loadTasks(activeProjectId);
+        } else {
+            activeProjectId = null;
+            tasks = [];
+        }
+        switchView('projects');
+        renderAll();
+    };
+
+    const loadProjects = async () => { const { data, error } = await _supabase.from('projects').select('*').eq('user_id', user.id); if (error) { console.error("Erro ao carregar projetos:", error); projects = []; } else { projects = data; } };
+    const loadTasks = async (projectId) => { if (!projectId) { tasks = []; return; } const { data, error } = await _supabase.from('tasks').select('*').eq('project_id', projectId); if (error) { console.error("Erro ao carregar tarefas:", error); tasks = []; } else { tasks = data; } };
+    const renderAll = () => { renderProjects(); renderTasks(); };
+
+    const renderProjects = () => {
+        projectList.innerHTML = '';
+        projects.forEach(project => {
+            const li = document.createElement('li');
+            li.dataset.projectId = project.id;
+            li.className = (project.id === activeProjectId) ? 'active-project' : '';
+            li.innerHTML = `<span class="project-name">${project.name}</span>`;
+            projectList.appendChild(li);
+        });
+    };
+
+    const renderTasks = () => {
+        kanbanBoard.innerHTML = '';
+        const activeProject = projects.find(p => p.id === activeProjectId);
+        currentProjectTitle.textContent = activeProject ? activeProject.name : "Selecione um Projeto";
+        if (!activeProject) { taskCounter.textContent = 'Crie ou selecione um projeto para começar.'; return; }
+        const pendingTasks = tasks.filter(t => t.status !== 'Concluído').length;
+        taskCounter.textContent = `${pendingTasks} tarefas pendentes.`;
+        const statuses = ['A Fazer', 'Em Andamento', 'Concluído'];
+        statuses.forEach(status => {
+            const column = document.createElement('div');
+            column.className = 'kanban-column';
+            column.dataset.status = status;
+            const tasksInColumn = tasks.filter(task => task.status === status);
+            column.innerHTML = `<h3>${status}<span class="task-count">${tasksInColumn.length}</span></h3><div class="tasks-container"></div>`;
+            const tasksContainer = column.querySelector('.tasks-container');
+            tasksInColumn.forEach(task => tasksContainer.appendChild(createTaskCard(task)));
+            kanbanBoard.appendChild(column);
+        });
+    };
+
+    const createTaskCard = (task) => {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.dataset.taskId = task.id;
+        card.draggable = true;
+        const priorityMap = { high: 'Alta', medium: 'Média', low: 'Baixa' };
+        card.innerHTML = `<button class="details-btn" title="Ver Detalhes"><span class="material-symbols-outlined">more_vert</span></button><div class="task-card-header"><span>${task.text}</span>${task.priority ? `<span class="priority-badge priority-${task.priority}">${priorityMap[task.priority]}</span>` : ''}</div><div class="task-card-footer"><span>${task.due_date ? `Vence: ${new Date(task.due_date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}` : 'Sem data'}</span></div>`;
+        if (task.status !== 'Concluído' && task.due_date && new Date(task.due_date) < new Date().setHours(0,0,0,0)) { card.classList.add('overdue'); }
+        return card;
+    };
+    
+    // ==================================================================
+    // --- FUNÇÕES DO MODAL E OUTRAS VIEWS ---
+    // ==================================================================
+    const openTaskModal = (task) => { activeTask = task; if (!task) return; modalTaskTitle.textContent = task.text; renderModalDetails(task); modalOverlay.classList.add('visible'); };
+    const renderModalDetails = (task) => { const priorityMap = { high: 'Alta', medium: 'Média', low: 'Baixa' }; const createdAt = task.created_at ? new Date(task.created_at).toLocaleString('pt-BR') : 'N/D'; const dueDateText = task.due_date ? new Date(task.due_date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não definido'; const statusText = task.status || 'A Fazer'; const priorityText = priorityMap[task.priority] || 'Não definida'; modalTaskDetails.innerHTML = `<div class="detail-item"><div class="detail-item-title"><span class="material-symbols-outlined">layers</span> Status</div><div class="detail-item-value">${statusText}</div></div><div class="detail-item"><div class="detail-item-title"><span class="material-symbols-outlined">flag</span> Prioridade</div><div class="detail-item-value">${priorityText}</div></div><div class="detail-item"><div class="detail-item-title"><span class="material-symbols-outlined">calendar_today</span> Vencimento</div><div class="detail-item-value editable-date" id="modal-due-date-wrapper"><span>${dueDateText}</span><button class="action-btn" id="edit-due-date-btn">Editar</button></div></div><div class="detail-item"><div class="detail-item-title"><span class="material-symbols-outlined">schedule</span> Criada em</div><div class="detail-item-value">${createdAt}</div></div>`; };
+    const closeTaskModal = () => { modalOverlay.classList.remove('visible'); activeTask = null; };
+    const renderGlobalDashboard = () => { /* Adicionar lógica do dashboard aqui se necessário */ };
+    const populateSettingsForm = () => { /* Adicionar lógica de configurações aqui se necessário */ };
+
+    // ==================================================================
+    // --- EVENT LISTENERS DA APLICAÇÃO ---
+    // ==================================================================
+    projectForm.addEventListener('submit', async (e) => { e.preventDefault(); const name = projectInput.value.trim(); if (name && user) { const { data, error } = await _supabase.from('projects').insert([{ name, user_id: user.id }]).select(); if (error) { showNotification('Erro ao criar projeto.', 'error'); } else { projectInput.value = ''; await loadProjects(); activeProjectId = data[0].id; await loadTasks(activeProjectId); renderAll(); } } });
+    projectList.addEventListener('click', async (e) => { const li = e.target.closest('li[data-project-id]'); if (li) { activeProjectId = parseInt(li.dataset.projectId); localStorage.setItem(`lastActiveProject_${user.id}`, activeProjectId); await loadTasks(activeProjectId); renderAll(); } });
+    taskForm.addEventListener('submit', async (e) => { e.preventDefault(); const text = taskForm.querySelector('#task-input').value.trim(); const due_date = taskForm.querySelector('#task-due-date').value; const priority = taskForm.querySelector('#task-priority').value; if (text && activeProjectId && user) { const { error } = await _supabase.from('tasks').insert([{ text, due_date: due_date || null, priority, status: 'A Fazer', project_id: activeProjectId, user_id: user.id }]); if (error) { showNotification('Erro ao criar tarefa.', 'error'); } else { taskForm.reset(); await loadTasks(activeProjectId); renderAll(); } } });
+    
+    kanbanBoard.addEventListener('click', (e) => { const detailsButton = e.target.closest('.details-btn'); if(detailsButton) { const card = detailsButton.closest('.task-card'); if(card) { const task = tasks.find(t => t.id == card.dataset.taskId); openTaskModal(task); } } });
+    modalCloseBtn.addEventListener('click', closeTaskModal);
+    modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeTaskModal(); });
+    modalTaskDetails.addEventListener('click', async e => {
+        if (e.target.id === 'edit-due-date-btn') { const wrapper = document.getElementById('modal-due-date-wrapper'); const toISODate = (dateString) => dateString ? new Date(dateString).toISOString().split('T')[0] : ''; wrapper.innerHTML = `<input type="date" class="editable-date-input" value="${toISODate(activeTask.due_date)}"><button class="action-btn" id="save-due-date-btn">Salvar</button>`; }
+        if (e.target.id === 'save-due-date-btn') {
+            const input = document.querySelector('.editable-date-input');
+            const { error } = await _supabase.from('tasks').update({ due_date: input.value || null }).eq('id', activeTask.id);
+            if(error){ showNotification('Erro ao atualizar data.', 'error'); } else { activeTask.due_date = input.value || null; await loadTasks(activeProjectId); renderAll(); renderModalDetails(activeTask); showNotification('Data de vencimento atualizada!'); }
+        }
+    });
+
+    let draggedTaskId = null;
+    kanbanBoard.addEventListener('dragstart', e => { if (e.target.classList.contains('task-card')) { draggedTaskId = e.target.dataset.taskId; e.target.classList.add('dragging'); } });
+    kanbanBoard.addEventListener('dragend', e => { if (e.target.classList.contains('task-card')) { e.target.classList.remove('dragging'); } });
+    kanbanBoard.addEventListener('dragover', e => { e.preventDefault(); });
+    kanbanBoard.addEventListener('drop', async (e) => { e.preventDefault(); const column = e.target.closest('.kanban-column'); if (column && draggedTaskId) { const newStatus = column.dataset.status; const { error } = await _supabase.from('tasks').update({ status: newStatus }).eq('id', draggedTaskId); if(error) { showNotification('Erro ao mover tarefa.', 'error'); } else { const movedTask = tasks.find(t => t.id == draggedTaskId); if(movedTask) movedTask.status = newStatus; renderAll(); } } });
+    
+    const showNotification = (message, type = 'success') => { const notification = document.createElement('div'); notification.className = `toast ${type}`; notification.textContent = message; notificationContainer.appendChild(notification); setTimeout(() => notification.remove(), 3500); };
+});
