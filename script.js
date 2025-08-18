@@ -1,11 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ==================================================================
-    // --- CONFIGURAÇÃO DO SUPABASE ---
+    // --- CONFIGURAÇÃO DO SUPABASE (COM SUAS CHAVES) ---
     // ==================================================================
-    // !! IMPORTANTE !! Substitua pelas suas chaves do Supabase
-    const SUPABASE_URL = 'URL_DO_SEU_PROJETO_SUPABASE_AQUI';
-    const SUPABASE_ANON_KEY = 'CHAVE_ANON_PUBLICA_AQUI';
+    const SUPABASE_URL = 'https://hmcuzsbfuvwbdemjbcpsa.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhtY3V6c2JmdXZ3YmRlbWJjcHNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0OTY3NTAsImV4cCI6MjA3MTA3Mjc1MH0.hbp39F3cD24LhyV3bv_pI4nQrGipPN9495QiUqPwa0w';
 
     const { createClient } = supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -73,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification(`Erro: ${error.message}`, 'error');
         } else {
             showNotification('Conta criada! Se a confirmação de email estiver ativa, verifique sua caixa de entrada.', 'success');
-            // Mostra o formulário de login após o cadastro
+             // Mostra o formulário de login após o cadastro
             document.getElementById('register-form-container').classList.add('view-hidden');
             document.getElementById('login-form-container').classList.remove('view-hidden');
         }
@@ -225,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.innerHTML = `<div class="task-card-header"><span>${task.text}</span>${task.priority ? `<span class="priority-badge priority-${task.priority}">${priorityMap[task.priority]}</span>` : ''}</div><div class="task-card-footer"><span>${task.due_date ? `Vence: ${new Date(task.due_date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}` : 'Sem data'}</span></div>`;
         return card;
     };
-
+    
     // ==================================================================
     // --- EVENT LISTENERS DA APLICAÇÃO ---
     // ==================================================================
