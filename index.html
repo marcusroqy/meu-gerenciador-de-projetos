@@ -58,13 +58,12 @@
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li class="nav-item active"><a href="#" data-view="projects"><span class="icon material-symbols-outlined">list_alt</span> Projetos</a></li>
-                    <li class="nav-item"><a href="#" data-view="dashboard-full"><span class="icon material-symbols-outlined">monitoring</span> Dashboard</a></li>
+                    <li class="nav-item"><a href="#" data-view="projects"><span class="icon material-symbols-outlined">list_alt</span> Projetos</a></li>
                 </ul>
             </nav>
             <div class="project-list-container">
                 <h2>Meus Projetos</h2>
-                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit">+</button></form>
+                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit" title="Adicionar">+</button></form>
                 <ul id="project-list"></ul>
             </div>
             <div class="sidebar-footer">
@@ -82,9 +81,6 @@
                         <div id="kanban-board"></div>
                     </div>
                 </main>
-            </div>
-            <div id="view-dashboard-full" class="main-view view-hidden">
-                <div class="dashboard-container"><h1>Dashboard Geral</h1><div class="dashboard-grid"><div class="stat-card"><h3>Total de Projetos</h3><p id="db-total-projects">0</p></div><div class="stat-card"><h3>Total de Tarefas</h3><p id="db-total-tasks">0</p></div><div class="stat-card"><h3>Tarefas Concluídas</h3><p id="db-completed-tasks">0</p></div></div><div class="dashboard-chart-container"><h3>Visão Geral das Tarefas por Status</h3><canvas id="global-status-chart"></canvas></div></div>
             </div>
         </div>
     </div>

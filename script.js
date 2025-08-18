@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const signOutBtn = document.getElementById('sign-out-btn');
     const notificationContainer = document.getElementById('notification-container');
     
-    const mainNav = document.querySelector('.main-nav ul'); // Corrigido para pegar o UL
+    const mainNav = document.querySelector('.main-nav ul');
     const mainViews = document.querySelectorAll('.main-view');
     
     const projectForm = document.getElementById('project-form');
@@ -60,9 +60,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    registerForm.addEventListener('submit', async (e) => { e.preventDefault(); const email = document.getElementById('register-email').value; const password = document.getElementById('register-password').value; const { data, error } = await _supabase.auth.signUp({ email, password }); if (error) { showNotification(`Erro: ${error.message}`, 'error'); } else { showNotification('Conta criada! Verifique seu email para confirmação, se necessário.', 'success'); showLoginLink.click(); } });
-    loginForm.addEventListener('submit', async (e) => { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; const { error } = await _supabase.auth.signInWithPassword({ email, password }); if (error) { showNotification(`Erro: ${error.message}`, 'error'); } });
-    signOutBtn.addEventListener('click', async () => { await _supabase.auth.signOut(); });
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const { error } = await _supabase.auth.signUp({ email, password });
+        if (error) {
+            showNotification(`Erro: ${error.message}`, 'error');
+        } else {
+            showNotification('Conta criada! Se a confirmação de email estiver ativa, verifique sua caixa de entrada.', 'success');
+            showLoginLink.click();
+        }
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const { error } = await _supabase.auth.signInWithPassword({ email, password });
+        if (error) showNotification(`Erro: ${error.message}`, 'error');
+    });
+
+    signOutBtn.addEventListener('click', async () => {
+        await _supabase.auth.signOut();
+    });
+
     showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('login-form-container').classList.add('view-hidden'); document.getElementById('register-form-container').classList.remove('view-hidden'); });
     showLoginLink.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('register-form-container').classList.add('view-hidden'); document.getElementById('login-form-container').classList.remove('view-hidden'); });
 
@@ -110,8 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAll();
     };
 
-    const loadProjects = async () => { const { data, error } = await _supabase.from('projects').select('*').eq('user_id', user.id); if (error) { console.error("Erro ao carregar projetos:", error); projects = []; } else { projects = data; } };
-    const loadTasks = async (projectId) => { if (!projectId) { tasks = []; return; } const { data, error } = await _supabase.from('tasks').select('*').eq('project_id', projectId); if (error) { console.error("Erro ao carregar tarefas:", error); tasks = []; } else { tasks = data; } };
+    const loadProjects = async () => { const { data, error } = await _supabase.from('projects').select('*').eq('user_id', user.id); if (error) { projects = []; } else { projects = data; } };
+    const loadTasks = async (projectId) => { if (!projectId) { tasks = []; return; } const { data, error } = await _supabase.from('tasks').select('*').eq('project_id', projectId); if (error) { tasks = []; } else { tasks = data; } };
     const renderAll = () => { renderProjects(); renderTasks(); };
 
     const renderProjects = () => {
