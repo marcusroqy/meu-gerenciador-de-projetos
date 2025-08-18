@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ==================================================================
-    // --- SELEÇÃO DOS ELEMENTOS GLOBAIS ---
+    // --- SELEÇÃO DOS ELEMENTOS ---
     // ==================================================================
     const authView = document.getElementById('auth-view');
     const appView = document.getElementById('app-view');
@@ -23,11 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const notificationContainer = document.getElementById('notification-container');
     
     // Elementos da aplicação principal
-    const mainNav = document.querySelector('.main-nav ul');
+    const mainNav = document.querySelector('.main-nav');
     const mainViews = document.querySelectorAll('.main-view');
-    const projectToggleBtn = document.getElementById('project-toggle-btn');
-    const projectsNavItem = document.getElementById('projects-nav-item');
-    const projectSubmenu = document.querySelector('.project-submenu');
     const projectForm = document.getElementById('project-form');
     const projectInput = document.getElementById('project-input');
     const projectList = document.getElementById('project-list');
@@ -75,8 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) {
             showNotification(`Erro: ${error.message}`, 'error');
         } else {
-            showNotification('Conta criada com sucesso! Você já pode fazer o login.', 'success');
-             // Mostra o formulário de login após o cadastro
+            showNotification('Conta criada! Se a confirmação de email estiver ativa, verifique sua caixa de entrada.', 'success');
+            // Mostra o formulário de login após o cadastro
             document.getElementById('register-form-container').classList.add('view-hidden');
             document.getElementById('login-form-container').classList.remove('view-hidden');
         }
@@ -118,18 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================================================================
     mainNav.addEventListener('click', (e) => {
         const link = e.target.closest('a');
-        if (!link) return;
-
-        if (link.id === 'project-toggle-btn') {
-            e.preventDefault();
-            projectsNavItem.classList.toggle('expanded');
-            projectSubmenu.classList.toggle('collapsed');
-        }
+        if (!link || !link.dataset.view) return;
         
-        if (link.dataset.view) {
-            e.preventDefault();
-            switchView(link.dataset.view);
-        }
+        e.preventDefault();
+        switchView(link.dataset.view);
     });
     
     const switchView = (viewName) => {
@@ -145,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================================================================
     
     const loadInitialData = async () => {
+        if (!user) return;
         await loadProjects();
         if (projects.length > 0) {
             const lastActive = localStorage.getItem(`lastActiveProject_${user.id}`);
@@ -152,7 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
             activeProjectId = projectExists ? parseInt(lastActive) : projects[0].id;
             await loadTasks(activeProjectId);
         } else {
-            tasks = []; // Garante que as tarefas estejam vazias se não houver projetos
+            activeProjectId = null;
+            tasks = [];
         }
         renderAll();
     };
@@ -234,18 +225,16 @@ document.addEventListener('DOMContentLoaded', () => {
         card.innerHTML = `<div class="task-card-header"><span>${task.text}</span>${task.priority ? `<span class="priority-badge priority-${task.priority}">${priorityMap[task.priority]}</span>` : ''}</div><div class="task-card-footer"><span>${task.due_date ? `Vence: ${new Date(task.due_date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}` : 'Sem data'}</span></div>`;
         return card;
     };
-    
+
     // ==================================================================
     // --- EVENT LISTENERS DA APLICAÇÃO ---
     // ==================================================================
     
-    // Adicionar novo projeto
     projectForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = projectInput.value.trim();
         if (name && user) {
             const { data, error } = await _supabase.from('projects').insert([{ name: name, user_id: user.id }]).select();
-            
             if (error) {
                 showNotification('Erro ao criar projeto.', 'error');
             } else {
@@ -258,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Selecionar um projeto
     projectList.addEventListener('click', async (e) => {
         const li = e.target.closest('li[data-project-id]');
         if (li) {
@@ -269,7 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Adicionar nova tarefa
     taskForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = taskForm.querySelector('#task-input').value.trim();
@@ -277,15 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const priority = taskForm.querySelector('#task-priority').value;
 
         if (text && activeProjectId && user) {
-            const { error } = await _supabase.from('tasks').insert([{
-                text,
-                due_date: due_date || null,
-                priority,
-                status: 'A Fazer',
-                project_id: activeProjectId,
-                user_id: user.id
-            }]);
-
+            const { error } = await _supabase.from('tasks').insert([{ text, due_date: due_date || null, priority, status: 'A Fazer', project_id: activeProjectId, user_id: user.id }]);
             if (error) {
                 showNotification('Erro ao criar tarefa.', 'error');
             } else {
@@ -296,31 +275,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Drag and Drop das tarefas
     let draggedTaskId = null;
     kanbanBoard.addEventListener('dragstart', e => { if (e.target.classList.contains('task-card')) { draggedTaskId = e.target.dataset.taskId; e.target.classList.add('dragging'); } });
     kanbanBoard.addEventListener('dragend', e => { if (e.target.classList.contains('task-card')) { e.target.classList.remove('dragging'); } });
-    kanbanBoard.addEventListener('dragover', e => { e.preventDefault(); const column = e.target.closest('.kanban-column'); if (column) { column.classList.add('over'); } });
-    kanbanBoard.addEventListener('dragleave', e => { const column = e.target.closest('.kanban-column'); if (column) { column.classList.remove('over'); } });
+    kanbanBoard.addEventListener('dragover', e => { e.preventDefault(); });
     kanbanBoard.addEventListener('drop', async (e) => {
         e.preventDefault();
         const column = e.target.closest('.kanban-column');
         if (column && draggedTaskId) {
             const newStatus = column.dataset.status;
             const { error } = await _supabase.from('tasks').update({ status: newStatus }).eq('id', draggedTaskId);
-            
             if(error) {
                 showNotification('Erro ao mover tarefa.', 'error');
             } else {
-                // Atualização otimista da UI para resposta rápida
                 const movedTask = tasks.find(t => t.id == draggedTaskId);
                 if(movedTask) movedTask.status = newStatus;
                 renderAll();
             }
         }
-        document.querySelectorAll('.kanban-column').forEach(col => col.classList.remove('over'));
     });
-
 
     // --- FUNÇÃO DE NOTIFICAÇÃO ---
     const showNotification = (message, type = 'success') => {
