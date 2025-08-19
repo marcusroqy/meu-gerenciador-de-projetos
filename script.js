@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const mainNav = document.querySelector('.main-nav ul');
     const mainViews = document.querySelectorAll('.main-view');
-    const projectsNavItem = document.getElementById('projects-nav-item');
     
     const projectForm = document.getElementById('project-form');
     const projectInput = document.getElementById('project-input');
@@ -90,43 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showLoginLink.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('register-form-container').classList.add('view-hidden'); document.getElementById('login-form-container').classList.remove('view-hidden'); });
 
     // ==================================================================
-    // --- LÓGICA DE NAVEGAÇÃO ---
-    // ==================================================================
-    if (mainNav) {
-        mainNav.addEventListener('click', (e) => {
-            const link = e.target.closest('a');
-            if (link) {
-                 if (link.id === 'project-toggle-btn') {
-                    e.preventDefault();
-                    projectsNavItem.classList.toggle('expanded');
-                }
-                if (link.dataset.view) {
-                    e.preventDefault();
-                    switchView(link.dataset.view);
-                }
-            }
-        });
-    }
-    
-    const switchView = (viewName) => {
-        mainViews.forEach(view => view.classList.add('view-hidden'));
-        const viewToShow = document.getElementById(`view-${viewName}`);
-        if (viewToShow) viewToShow.classList.remove('view-hidden');
-
-        if(mainNav){
-            mainNav.querySelectorAll('.nav-item').forEach(li => li.classList.remove('active'));
-            const activeLink = mainNav.querySelector(`a[data-view="${viewName}"]`);
-            if(activeLink) {
-                const navItem = activeLink.closest('.nav-item');
-                if(navItem) navItem.classList.add('active');
-            } else if (viewName === 'projects'){
-                projectsNavItem.classList.add('active');
-            }
-        }
-    };
-
-    // ==================================================================
-    // --- LÓGICA DE DADOS (PROJETOS E TAREFAS com Supabase) ---
+    // --- LÓGICA DE NAVEGAÇÃO E DADOS ---
     // ==================================================================
     const loadInitialData = async () => {
         if (!user) return;
@@ -140,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
             activeProjectId = null;
             tasks = [];
         }
-        switchView('projects');
         renderAll();
     };
 
@@ -183,8 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'task-card';
         card.dataset.taskId = task.id;
         card.draggable = true;
-        const priorityMap = { high: 'Alta', medium: 'Média', low: 'Baixa' };
-        card.innerHTML = `<div class="task-card-header"><span>${task.text}</span>${task.priority ? `<span class="priority-badge priority-${task.priority}">${priorityMap[task.priority]}</span>` : ''}</div><div class="task-card-footer"><span>${task.due_date ? `Vence: ${new Date(task.due_date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}` : 'Sem data'}</span></div>`;
+        card.innerHTML = `<span>${task.text}</span>`;
         return card;
     };
     
