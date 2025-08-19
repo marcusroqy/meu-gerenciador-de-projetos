@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) {
             showNotification(`Erro: ${error.message}`, 'error');
         } else {
-            showNotification('Conta criada! Se a confirmação de email estiver ativa, verifique sua caixa de entrada.', 'success');
+            showNotification('Conta criada! Verifique seu email para confirmação, se necessário.', 'success');
             showLoginLink.click();
         }
     });
