@@ -3,8 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================================================================
     // --- CONFIGURAÇÃO DO SUPABASE ---
     // ==================================================================
-    const SUPABASE_URL = 'https://egishguoptqbxmsnhngf.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnaXNoZ3VvcHRxYnhtc25obmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NDMzODksImV4cCI6MjA3MTIxOTM4OX0.RmbvPa2h5Jl33A1LetqufGw7kuGPJZKouT0VEp2icxw';
+    // !! IMPORTANTE !! Cole suas chaves do Supabase aqui
+    const SUPABASE_URL = 'COLE_SUA_URL_AQUI';
+    const SUPABASE_ANON_KEY = 'COLE_SUA_CHAVE_ANON_AQUI';
 
     const { createClient } = supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const mainNav = document.querySelector('.main-nav ul');
     const mainViews = document.querySelectorAll('.main-view');
+    const projectsNavItem = document.getElementById('projects-nav-item');
     
     const projectForm = document.getElementById('project-form');
     const projectInput = document.getElementById('project-input');

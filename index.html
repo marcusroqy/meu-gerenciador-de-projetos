@@ -58,15 +58,26 @@
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li class="nav-item active"><a href="#" data-view="projects"><span class="icon material-symbols-outlined">list_alt</span> Projetos</a></li>
+                    <li class="nav-item"><a href="#" data-view="home"><span class="icon material-symbols-outlined">inbox</span> Caixa de Entrada</a></li>
+                    <li id="projects-nav-item" class="nav-item active">
+                        <a href="#" id="project-toggle-btn">
+                            <span class="icon material-symbols-outlined">list_alt</span> 
+                            Projetos
+                            <span class="chevron material-symbols-outlined">expand_more</span>
+                        </a>
+                        <div class="project-submenu">
+                            <div class="project-list-container">
+                                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit" title="Adicionar">+</button></form>
+                                <ul id="project-list"></ul>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a href="#" data-view="dashboard-full"><span class="icon material-symbols-outlined">monitoring</span> Dashboard</a></li>
+                    <li class="nav-item"><a href="#" data-view="settings"><span class="icon material-symbols-outlined">settings</span> Configurações</a></li>
                 </ul>
             </nav>
-            <div class="project-list-container">
-                <h2>Meus Projetos</h2>
-                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit" title="Adicionar">+</button></form>
-                <ul id="project-list"></ul>
-            </div>
             <div class="sidebar-footer">
+                <button id="theme-toggle" class="theme-btn"><span class="material-symbols-outlined">dark_mode</span></button>
                 <button id="sign-out-btn" class="action-btn">Sair <span class="material-symbols-outlined">logout</span></button>
             </div>
         </aside>
@@ -82,6 +93,9 @@
                     </div>
                 </main>
             </div>
+            <div id="view-home" class="main-view view-hidden"></div>
+            <div id="view-dashboard-full" class="main-view view-hidden"></div>
+            <div id="view-settings" class="main-view view-hidden"></div>
         </div>
     </div>
     
