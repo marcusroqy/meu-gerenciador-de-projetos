@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const SUPABASE_URL = 'https://hmcuzsbfuvwbdemjbcpsa.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhtY3V6c2JmdXZ3YmRlbWJjcHNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0OTY3NTAsImV4cCI6MjA3MTA3Mjc1MH0.hbp39F3cD24LhyV3bv_pI4nQrGipPN9495QiUqPwa0w';
 
+    // PONTO DE VERIFICAÇÃO: VAMOS EXIBIR A URL NO CONSOLE PARA TER CERTEZA
+    console.log('Conectando ao Supabase na URL:', SUPABASE_URL);
+
     const { createClient } = supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -187,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     kanbanBoard.addEventListener('dragstart', e => { if (e.target.classList.contains('task-card')) { draggedTaskId = e.target.dataset.taskId; e.target.classList.add('dragging'); } });
     kanbanBoard.addEventListener('dragend', e => { if (e.target.classList.contains('task-card')) { e.target.classList.remove('dragging'); } });
     kanbanBoard.addEventListener('dragover', e => { e.preventDefault(); });
-    kanbanBoard.addEventListener('drop', async (e) => { e.preventDefault(); const column = e.target.closest('.kanban-column'); if (column && draggedTaskId) { const newStatus = column.dataset.status; const { error } = await _supabase.from('tasks').update({ status: newStatus }).eq('id', draggedTaskId); if(error) { showNotification('Erro ao mover tarefa.', 'error'); } else { const movedTask = tasks.find(t => t.id == draggedTaskId); if(movedTask) movedTask.status = newStatus; renderAll(); } } });
+    kanbanBoard.addEventListener('drop', async (e) => { e.preventDefault(); const column = e.target.closest('.column'); if (column && draggedTaskId) { const newStatus = column.dataset.status; const { error } = await _supabase.from('tasks').update({ status: newStatus }).eq('id', draggedTaskId); if(error) { showNotification('Erro ao mover tarefa.', 'error'); } else { const movedTask = tasks.find(t => t.id == draggedTaskId); if(movedTask) movedTask.status = newStatus; renderAll(); } } });
 
     const showNotification = (message, type = 'success') => { const notification = document.createElement('div'); notification.className = `toast ${type}`; notification.textContent = message; notificationContainer.appendChild(notification); setTimeout(() => notification.remove(), 3500); };
 });
