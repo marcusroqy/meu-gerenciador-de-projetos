@@ -69,14 +69,14 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color
 .main-nav .nav-item > a { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 6px; text-decoration: none; color: var(--text-secondary); font-weight: 500; }
 .main-nav .nav-item > a:hover { background-color: var(--bg-hover); color: var(--text-primary); }
 .main-nav .nav-item.active > a { background-color: var(--accent-primary); color: var(--text-on-accent); }
-.project-list-container { padding: 20px; border-top: 1px solid var(--border-color); }
+.project-list-container { padding: 20px; border-top: 1px solid var(--border-color); flex-grow: 1; overflow-y: auto;}
 #project-form { display: flex; margin-bottom: 10px; }
 #project-form input { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 6px 0 0 6px; padding: 8px; font-size: 13px; background-color: var(--bg-main); color: var(--text-primary); }
 #project-form button { border-radius: 0 6px 6px 0; border: 1px solid var(--accent-primary); background-color: var(--accent-primary); color: var(--text-on-accent); cursor: pointer; width: 36px; }
 #project-list li { display: flex; padding: 8px 10px; border-radius: 6px; margin-bottom: 4px; cursor: pointer; font-size: 14px; }
 #project-list li:hover { background-color: var(--bg-hover); }
 #project-list li.active-project { background-color: var(--accent-primary-hover); color: var(--text-on-accent); }
-.sidebar-footer { padding: 10px; margin-top: auto; }
+.sidebar-footer { padding: 10px; margin-top: auto; border-top: 1px solid var(--border-color); }
 .action-btn { width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 500; background-color: var(--bg-content-secondary); border: 1px solid var(--border-color); color: var(--text-primary); display: flex; align-items: center; justify-content: center; gap: 8px;}
 
 /* KANBAN */
