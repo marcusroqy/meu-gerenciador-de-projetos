@@ -3,9 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================================================================
     // --- CONFIGURAÇÃO DO SUPABASE ---
     // ==================================================================
-    // !! IMPORTANTE !! Cole suas chaves do Supabase aqui
-    const SUPABASE_URL = 'COLE_SUA_URL_AQUI';
-    const SUPABASE_ANON_KEY = 'COLE_SUA_CHAVE_ANON_AQUI';
+    const SUPABASE_URL = 'https://egishguoptqbxmsnhngf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnaXNoZ3VvcHRxYnhtc25obmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NDMzODksImV4cCI6MjA3MTIxOTM4OX0.RmbvPa2h5Jl33A1LetqufGw7kuGPJZKouT0VEp2icxw';
 
     const { createClient } = supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -24,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const mainNav = document.querySelector('.main-nav ul');
     const mainViews = document.querySelectorAll('.main-view');
-    const projectsNavItem = document.getElementById('projects-nav-item');
     
     const projectForm = document.getElementById('project-form');
     const projectInput = document.getElementById('project-input');
@@ -105,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
             activeProjectId = null;
             tasks = [];
         }
-        switchView('projects');
         renderAll();
     };
 
@@ -151,42 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
         card.innerHTML = `<span>${task.text}</span>`;
         return card;
     };
-
-    if (mainNav) {
-        mainNav.addEventListener('click', (e) => {
-            const link = e.target.closest('a');
-            if (link) {
-                 if (link.id === 'project-toggle-btn') {
-                    e.preventDefault();
-                    projectsNavItem.classList.toggle('expanded');
-                }
-                if (link.dataset.view) {
-                    e.preventDefault();
-                    switchView(link.dataset.view);
-                }
-            }
-        });
-    }
-
-    const switchView = (viewName) => {
-        mainViews.forEach(view => view.classList.add('view-hidden'));
-        const viewToShow = document.getElementById(`view-${viewName}`);
-        if (viewToShow) viewToShow.classList.remove('view-hidden');
-    
-        mainNav.querySelectorAll('.nav-item').forEach(li => li.classList.remove('active'));
-        if (viewName === 'projects') {
-            projectsNavItem.classList.add('active');
-        } else {
-            const activeLink = mainNav.querySelector(`a[data-view="${viewName}"]`);
-            if (activeLink) activeLink.closest('.nav-item').classList.add('active');
-        }
-    };
     
     // ==================================================================
     // --- EVENT LISTENERS DA APLICAÇÃO ---
     // ==================================================================
     projectForm.addEventListener('submit', async (e) => { e.preventDefault(); const name = projectInput.value.trim(); if (name && user) { const { data, error } = await _supabase.from('projects').insert([{ name, user_id: user.id }]).select(); if (error) { showNotification('Erro ao criar projeto.', 'error'); } else { projectInput.value = ''; await loadProjects(); activeProjectId = data[0].id; await loadTasks(activeProjectId); renderAll(); } } });
-    projectList.addEventListener('click', async (e) => { const li = e.target.closest('li[data-project-id]'); if (li) { activeProjectId = parseInt(li.dataset.projectId); localStorage.setItem(`lastActiveProject_${user.id}`, activeProjectId); await loadTasks(activeProjectId); renderAll(); switchView('projects'); } });
+    projectList.addEventListener('click', async (e) => { const li = e.target.closest('li[data-project-id]'); if (li) { activeProjectId = parseInt(li.dataset.projectId); localStorage.setItem(`lastActiveProject_${user.id}`, activeProjectId); await loadTasks(activeProjectId); renderAll(); } });
     taskForm.addEventListener('submit', async (e) => { e.preventDefault(); const text = taskForm.querySelector('#task-input').value.trim(); const due_date = taskForm.querySelector('#task-due-date').value; const priority = taskForm.querySelector('#task-priority').value; if (text && activeProjectId && user) { const { error } = await _supabase.from('tasks').insert([{ text, due_date: due_date || null, priority, status: 'A Fazer', project_id: activeProjectId, user_id: user.id }]); if (error) { showNotification('Erro ao criar tarefa.', 'error'); } else { taskForm.reset(); await loadTasks(activeProjectId); renderAll(); } } });
 
     let draggedTaskId = null;
