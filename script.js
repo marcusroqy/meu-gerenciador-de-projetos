@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ==================================================================
-    // --- CONFIGURAÇÃO DO SUPABASE (COM SUAS NOVAS CHAVES) ---
+    // --- CONFIGURAÇÃO DO SUPABASE ---
     // ==================================================================
     const SUPABASE_URL = 'https://egishguoptqbxmsnhngf.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnaXNoZ3VvcHRxYnhtc25obmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NDMzODksImV4cCI6MjA3MTIxOTM4OX0.RmbvPa2h5Jl33A1LetqufGw7kuGPJZKouT0VEp2icxw';
@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const mainNav = document.querySelector('.main-nav ul');
     const mainViews = document.querySelectorAll('.main-view');
+    const projectsNavItem = document.getElementById('projects-nav-item');
     
     const projectForm = document.getElementById('project-form');
     const projectInput = document.getElementById('project-input');
@@ -94,9 +95,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mainNav) {
         mainNav.addEventListener('click', (e) => {
             const link = e.target.closest('a');
-            if (link && link.dataset.view) {
-                e.preventDefault();
-                switchView(link.dataset.view);
+            if (link) {
+                 if (link.id === 'project-toggle-btn') {
+                    e.preventDefault();
+                    projectsNavItem.classList.toggle('expanded');
+                }
+                if (link.dataset.view) {
+                    e.preventDefault();
+                    switchView(link.dataset.view);
+                }
             }
         });
     }
@@ -109,7 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if(mainNav){
             mainNav.querySelectorAll('.nav-item').forEach(li => li.classList.remove('active'));
             const activeLink = mainNav.querySelector(`a[data-view="${viewName}"]`);
-            if(activeLink) activeLink.closest('.nav-item').classList.add('active');
+            if(activeLink) {
+                const navItem = activeLink.closest('.nav-item');
+                if(navItem) navItem.classList.add('active');
+            } else if (viewName === 'projects'){
+                projectsNavItem.classList.add('active');
+            }
         }
     };
 

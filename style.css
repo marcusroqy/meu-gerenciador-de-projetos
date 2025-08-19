@@ -64,16 +64,20 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color
 .sidebar-header { display: flex; align-items: center; gap: 12px; padding: 20px; border-bottom: 1px solid var(--border-color); }
 .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: var(--accent-primary); color: var(--text-on-accent); display: flex; align-items: center; justify-content: center; font-weight: bold; }
 .sidebar-header span { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.main-nav { padding: 10px; }
+.main-nav { padding: 10px; flex-shrink: 0; }
 .main-nav ul, .main-nav li { list-style: none; padding: 0; margin: 0; }
 .main-nav .nav-item > a { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 6px; text-decoration: none; color: var(--text-secondary); font-weight: 500; }
 .main-nav .nav-item > a:hover { background-color: var(--bg-hover); color: var(--text-primary); }
 .main-nav .nav-item.active > a { background-color: var(--accent-primary); color: var(--text-on-accent); }
-.project-list-container { padding: 20px; border-top: 1px solid var(--border-color); flex-grow: 1; overflow-y: auto;}
+#project-toggle-btn .chevron { margin-left: auto; transition: transform 0.2s; }
+.nav-item.expanded #project-toggle-btn .chevron { transform: rotate(180deg); }
+.project-submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+.nav-item.expanded .project-submenu { max-height: 500px; }
+.project-list-container { padding: 10px 0 0 15px; }
 #project-form { display: flex; margin-bottom: 10px; }
 #project-form input { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 6px 0 0 6px; padding: 8px; font-size: 13px; background-color: var(--bg-main); color: var(--text-primary); }
 #project-form button { border-radius: 0 6px 6px 0; border: 1px solid var(--accent-primary); background-color: var(--accent-primary); color: var(--text-on-accent); cursor: pointer; width: 36px; }
-#project-list li { display: flex; padding: 8px 10px; border-radius: 6px; margin-bottom: 4px; cursor: pointer; font-size: 14px; }
+#project-list li { display: flex; padding: 8px 10px 8px 15px; border-radius: 6px; margin-bottom: 4px; cursor: pointer; font-size: 14px; }
 #project-list li:hover { background-color: var(--bg-hover); }
 #project-list li.active-project { background-color: var(--accent-primary-hover); color: var(--text-on-accent); }
 .sidebar-footer { padding: 10px; margin-top: auto; }

@@ -58,14 +58,21 @@
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li class="nav-item active"><a href="#" data-view="projects"><span class="icon material-symbols-outlined">list_alt</span> Projetos</a></li>
+                    <li class="nav-item active" data-view="projects">
+                        <a href="#" id="project-toggle-btn">
+                            <span class="icon material-symbols-outlined">list_alt</span> 
+                            Projetos
+                            <span class="chevron material-symbols-outlined">expand_more</span>
+                        </a>
+                        <div class="project-submenu">
+                            <div class="project-list-container">
+                                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit" title="Adicionar">+</button></form>
+                                <ul id="project-list"></ul>
+                            </div>
+                        </div>
+                    </li>
                 </ul>
             </nav>
-            <div class="project-list-container">
-                <h2>Meus Projetos</h2>
-                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit" title="Adicionar">+</button></form>
-                <ul id="project-list"></ul>
-            </div>
             <div class="sidebar-footer">
                 <button id="sign-out-btn" class="action-btn">Sair <span class="material-symbols-outlined">logout</span></button>
             </div>
