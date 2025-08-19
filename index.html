@@ -58,29 +58,16 @@
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li class="nav-item"><a href="#" data-view="home"><span class="icon material-symbols-outlined">inbox</span> Caixa de Entrada</a></li>
-                    <li id="projects-nav-item" class="nav-item active">
-                        <a href="#" id="project-toggle-btn">
-                            <span class="icon material-symbols-outlined">list_alt</span> 
-                            Projetos
-                            <span class="chevron material-symbols-outlined">expand_more</span>
-                        </a>
-                        <div class="project-submenu">
-                            <div class="project-list-container">
-                                <form id="project-form">
-                                    <input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off">
-                                    <button type="submit" title="Adicionar novo projeto">+</button>
-                                </form>
-                                <ul id="project-list"></ul>
-                            </div>
-                        </div>
-                    </li>
-                    <li class="nav-item"><a href="#" data-view="dashboard-full"><span class="icon material-symbols-outlined">monitoring</span> Dashboard</a></li>
-                    <li class="nav-item"><a href="#" data-view="settings"><span class="icon material-symbols-outlined">settings</span> Configurações</a></li>
+                    <li class="nav-item active"><a href="#" data-view="projects"><span class="icon material-symbols-outlined">list_alt</span> Projetos</a></li>
                 </ul>
             </nav>
+            <div class="project-list-container">
+                <h2>Meus Projetos</h2>
+                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit" title="Adicionar">+</button></form>
+                <ul id="project-list"></ul>
+            </div>
             <div class="sidebar-footer">
-                 <button id="sign-out-btn" class="action-btn">Sair <span class="material-symbols-outlined">logout</span></button>
+                <button id="sign-out-btn" class="action-btn">Sair <span class="material-symbols-outlined">logout</span></button>
             </div>
         </aside>
         
@@ -95,24 +82,9 @@
                     </div>
                 </main>
             </div>
-            <div id="view-home" class="main-view view-hidden">
-                 <div class="inbox-layout">
-                    <aside class="inbox-sidebar">
-                        <div class="inbox-header"><h2>Caixa de Entrada</h2><button id="refresh-inbox-btn" class="action-btn" title="Atualizar"><span class="material-symbols-outlined">refresh</span></button></div>
-                        <div id="inbox-list" class="inbox-list"><p class="inbox-placeholder">Carregando emails...</p></div>
-                    </aside>
-                    <main id="inbox-viewer" class="inbox-viewer"><div class="inbox-viewer-placeholder"><span class="material-symbols-outlined">mail</span><p>Selecione um email para ler</p></div></main>
-                </div>
-            </div>
-            <div id="view-dashboard-full" class="main-view view-hidden">
-                <div class="dashboard-container"><h1>Dashboard Geral</h1><div class="dashboard-grid"><div class="stat-card"><h3>Total de Projetos</h3><p id="db-total-projects">0</p></div><div class="stat-card"><h3>Total de Tarefas</h3><p id="db-total-tasks">0</p></div><div class="stat-card"><h3>Tarefas Concluídas</h3><p id="db-completed-tasks">0</p></div></div><div class="dashboard-chart-container"><h3>Visão Geral das Tarefas por Status</h3><canvas id="global-status-chart"></canvas></div></div>
-            </div>
-            <div id="view-settings" class="main-view view-hidden">
-                <div class="settings-container"><div class="settings-header"><h1>Configurações da Conta</h1><p>Gerencie suas informações de perfil e segurança.</p></div><form id="settings-form" class="settings-form"><div class="settings-section"><div class="section-header"><h2>Perfil Público</h2><p>Essas informações podem ser vistas por outros membros da equipe.</p></div><div class="section-body"><div class="form-group avatar-group"><label>Foto de Perfil</label><div class="avatar-upload-wrapper"><img src="https://i.imgur.com/3Y2gpN9.png" alt="Avatar do usuário" id="avatar-preview" class="avatar-preview"><div class="avatar-actions"><button type="button" id="change-avatar-btn" class="action-btn">Trocar Foto</button><input type="file" id="avatar-input" accept="image/*" hidden><small>PNG, JPG ou GIF.</small></div></div></div><div class="form-group"><label for="full-name">Nome Completo</label><input type="text" id="full-name" placeholder="Seu nome completo"></div><div class="form-group"><label for="username">Nome de Usuário</label><input type="text" id="username" placeholder="Seu nome de usuário"></div></div></div><div class="settings-section"><div class="section-header"><h2>Segurança</h2><p>Gerencie seu email e senha.</p></div><div class="section-body"><div class="form-group"><label for="email">Endereço de Email</label><input type="email" id="email" placeholder="seu@email.com"></div><div class="form-group"><label for="new-password">Nova Senha</label><input type="password" id="new-password" placeholder="Mínimo 8 caracteres"></div><div class="form-group"><label for="confirm-password">Confirmar Nova Senha</label><input type="password" id="confirm-password" placeholder="Repita a nova senha"></div></div></div><div class="settings-footer"><button type="submit" class="save-btn">Salvar Alterações</button></div></form></div>
-            </div>
         </div>
     </div>
-    <div id="task-details-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2 id="modal-task-title"></h2><button class="modal-close-btn"><span class="material-symbols-outlined">close</span></button></div><div class="modal-body"><div id="modal-task-details"></div><div class="modal-comments-section"><h3><span class="material-symbols-outlined">forum</span> Atividade</h3><div id="comment-list"></div><form id="comment-form"><input type="text" id="comment-input" placeholder="Adicionar um comentário..." autocomplete="off"><button type="submit" class="add-btn">Adicionar</button></form></div></div></div></div>
+    
     <div id="notification-container"></div>
     <script src="script.js"></script>
 </body>

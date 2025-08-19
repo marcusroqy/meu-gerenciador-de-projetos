@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ==================================================================
-    // --- CONFIGURAÇÃO DO SUPABASE ---
+    // --- CONFIGURAÇÃO DO SUPABASE (COM SUAS NOVAS CHAVES) ---
     // ==================================================================
-    const SUPABASE_URL = 'https://hmcuzsbfuvwbdemjbcpsa.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhtY3V6c2JmdXZ3YmRlbWJjcHNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0OTY3NTAsImV4cCI6MjA3MTA3Mjc1MH0.hbp39F3cD24LhyV3bv_pI4nQrGipPN9495QiUqPwa0w';
+    const SUPABASE_URL = 'https://egishguoptqbxmsnhngf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnaXNoZ3VvcHRxYnhtc25obmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NDMzODksImV4cCI6MjA3MTIxOTM4OX0.RmbvPa2h5Jl33A1LetqufGw7kuGPJZKouT0VEp2icxw';
 
     const { createClient } = supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
