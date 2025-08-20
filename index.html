@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div id="auth-view">
         <div class="auth-layout">
             <div class="auth-panel auth-form-panel">
@@ -21,8 +20,14 @@
                         <h2>Bem-vindo de volta!</h2>
                         <p>Faça login para acessar seus projetos.</p>
                         <form id="login-form">
-                            <div class="form-group"><label for="login-email">Email</label><input type="email" id="login-email" required></div>
-                            <div class="form-group"><label for="login-password">Senha</label><input type="password" id="login-password" required></div>
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Senha</label>
+                                <input type="password" id="login-password" required>
+                            </div>
                             <button type="submit" class="save-btn">Entrar</button>
                         </form>
                         <p class="auth-toggle-link">Não tem uma conta? <a href="#" id="show-register">Cadastre-se</a></p>
@@ -31,8 +36,14 @@
                         <h2>Crie sua Conta</h2>
                         <p>Comece a organizar seus projetos hoje mesmo.</p>
                         <form id="register-form">
-                            <div class="form-group"><label for="register-email">Email</label><input type="email" id="register-email" required></div>
-                            <div class="form-group"><label for="register-password">Senha</label><input type="password" id="register-password" required></div>
+                            <div class="form-group">
+                                <label for="register-email">Email</label>
+                                <input type="email" id="register-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="register-password">Senha</label>
+                                <input type="password" id="register-password" required>
+                            </div>
                             <button type="submit" class="save-btn">Criar Conta</button>
                         </form>
                         <p class="auth-toggle-link">Já tem uma conta? <a href="#" id="show-login">Faça Login</a></p>
@@ -57,15 +68,26 @@
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li class="nav-item"><a href="#" data-view="home"><span class="icon material-symbols-outlined">home</span> Início</a></li>
-                    <li class="nav-item active" id="projects-nav-item"><a href="#" data-view="projects">
-                    <li class="nav-item"><a href="#" data-view="dashboard"><span class="icon material-symbols-outlined">monitoring</span> Dashboard Geral</a></li>
-                    <li class="nav-item"><a href="#" data-view="settings"><span class="icon material-symbols-outlined">settings</span> Configurações</a></li>
+                    <li class="nav-item">
+                        <a href="#" data-view="home"><span class="icon material-symbols-outlined">home</span> Início</a>
+                    </li>
+                    <li class="nav-item active" id="projects-nav-item">
+                        <a href="#" data-view="projects"><span class="icon material-symbols-outlined">list_alt</span> Projetos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" data-view="dashboard"><span class="icon material-symbols-outlined">monitoring</span> Dashboard Geral</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" data-view="settings"><span class="icon material-symbols-outlined">settings</span> Configurações</a>
+                    </li>
                 </ul>
             </nav>
             <div class="project-list-container">
                 <h3>Meus Projetos</h3>
-                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit" title="Adicionar">+</button></form>
+                <form id="project-form">
+                    <input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off">
+                    <button type="submit" title="Adicionar">+</button>
+                </form>
                 <ul id="project-list"></ul>
             </div>
             <div class="sidebar-footer">
@@ -76,13 +98,21 @@
         <div class="main-content">
             <main id="view-projects" class="tasks-view main-view">
                 <div class="container">
-                    <h1 id="current-project-title"></h1>
-                    <p id="task-counter"></p>
-                    <form id="task-form"><input type="text" id="task-input" placeholder="Adicionar nova tarefa..." autocomplete="off"><input type="date" id="task-due-date"><select id="task-priority"><option value="low">Baixa</option><option value="medium" selected>Média</option><option value="high">Alta</option></select><button type="submit" class="add-btn">Adicionar</button></form>
+                    <h1 id="current-project-title">Selecione um Projeto</h1>
+                    <p id="task-counter">Crie ou selecione um projeto.</p>
+                    <form id="task-form">
+                        <input type="text" id="task-input" placeholder="Adicionar nova tarefa..." autocomplete="off">
+                        <input type="date" id="task-due-date">
+                        <select id="task-priority">
+                            <option value="low">Baixa</option>
+                            <option value="medium" selected>Média</option>
+                            <option value="high">Alta</option>
+                        </select>
+                        <button type="submit" class="add-btn">Adicionar</button>
+                    </form>
                     <div id="kanban-board"></div>
                 </div>
             </main>
-            
             <div id="view-home" class="main-view view-hidden">
                 <div class="placeholder-view"><h1>Início</h1><p>Bem-vindo! Um resumo geral das suas atividades aparecerá aqui.</p></div>
             </div>
@@ -94,7 +124,6 @@
             </div>
         </div>
     </div>
-    
     <div id="notification-container"></div>
     <script src="script.js"></script>
 </body>
