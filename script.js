@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================================================================
     // IMPORTANTE: Substitua pelas suas credenciais do Supabase!
     // Você encontra isso em: Settings > API no seu painel do Supabase.
-    const SUPABASE_URL = 'https://meu-gerenciador-de-projetos-6uyhp3ddy-marcus-projects-f8aba2b2.vercel.ap'; 
+    const SUPABASE_URL = 'https://egishguoptqbxmsnhngf.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnaXNoZ3VvcHRxYnhtc25obmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NDMzODksImV4cCI6MjA3MTIxOTM4OX0.RmbvPa2h5Jl33A1LetqufGw7kuGPJZKouT0VEp2icxw';
 
     // Se você configurou na Vercel, o código seria assim:
