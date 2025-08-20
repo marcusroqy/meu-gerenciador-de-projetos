@@ -57,7 +57,10 @@
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li class="nav-item active"><a href="#"><span class="icon material-symbols-outlined">list_alt</span> Projetos</a></li>
+                    <li class="nav-item"><a href="#" data-view="home"><span class="icon material-symbols-outlined">home</span> Início</a></li>
+                    <li class="nav-item active"><a href="#" data-view="projects"><span class="icon material-symbols-outlined">list_alt</span> Projetos</a></li>
+                    <li class="nav-item"><a href="#" data-view="dashboard"><span class="icon material-symbols-outlined">monitoring</span> Dashboard Geral</a></li>
+                    <li class="nav-item"><a href="#" data-view="settings"><span class="icon material-symbols-outlined">settings</span> Configurações</a></li>
                 </ul>
             </nav>
             <div class="project-list-container">
@@ -71,7 +74,7 @@
         </aside>
         
         <div class="main-content">
-            <main class="tasks-view">
+            <main id="view-projects" class="tasks-view main-view">
                 <div class="container">
                     <h1 id="current-project-title"></h1>
                     <p id="task-counter"></p>
@@ -79,6 +82,16 @@
                     <div id="kanban-board"></div>
                 </div>
             </main>
+            
+            <div id="view-home" class="main-view view-hidden">
+                <div class="placeholder-view"><h1>Início</h1><p>Bem-vindo! Um resumo geral das suas atividades aparecerá aqui.</p></div>
+            </div>
+            <div id="view-dashboard" class="main-view view-hidden">
+                <div class="placeholder-view"><h1>Dashboard Geral</h1><p>Gráficos e estatísticas de todos os seus projetos aparecerão aqui.</p></div>
+            </div>
+            <div id="view-settings" class="main-view view-hidden">
+                <div class="placeholder-view"><h1>Configurações</h1><p>Opções da sua conta e da aplicação aparecerão aqui.</p></div>
+            </div>
         </div>
     </div>
     

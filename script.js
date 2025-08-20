@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================================================================
     // --- CONFIGURAÇÃO DO SUPABASE ---
     // ==================================================================
-    // !! IMPORTANTE !! Cole suas chaves do Supabase aqui
     const SUPABASE_URL = 'COLE_SUA_URL_AQUI';
     const SUPABASE_ANON_KEY = 'COLE_SUA_CHAVE_ANON_AQUI';
 
@@ -34,11 +33,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const userAvatar = document.querySelector('.user-avatar');
     const userNameSpan = document.querySelector('.sidebar-header span');
 
+    const mainNav = document.querySelector('.main-nav');
+
     // --- ESTRUTURA DE DADOS E ESTADO ---
     let user = null;
     let projects = [];
     let tasks = [];
     let activeProjectId = null;
+
+    // --- FUNÇÃO DE NOTIFICAÇÃO ---
+    const showNotification = (message, type = 'success') => { const n = document.createElement('div'); n.className = `toast ${type}`; n.textContent = message; notificationContainer.appendChild(n); setTimeout(() => n.remove(), 3500); };
+
+    // --- FUNÇÃO PARA CONTROLAR AS VISTAS (PÁGINAS) ---
+    const showMainView = (viewId) => {
+        document.querySelectorAll('.main-view').forEach(view => view.classList.add('view-hidden'));
+        document.querySelectorAll('.main-nav .nav-item').forEach(item => item.classList.remove('active'));
+
+        const viewToShow = document.getElementById(viewId);
+        const navLink = mainNav.querySelector(`a[data-view="${viewId.replace('view-', '')}"]`);
+
+        if (viewToShow) viewToShow.classList.remove('view-hidden');
+        if (navLink) navLink.closest('.nav-item').classList.add('active');
+    };
 
     // ==================================================================
     // --- LÓGICA DE AUTENTICAÇÃO ---
@@ -58,31 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('register-email').value;
-        const password = document.getElementById('register-password').value;
-        const { error } = await _supabase.auth.signUp({ email, password });
-        if (error) {
-            showNotification(`Erro: ${error.message}`, 'error');
-        } else {
-            showNotification('Conta criada! Verifique seu email para confirmação, se necessário.', 'success');
-            showLoginLink.click();
-        }
-    });
-
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        const { error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) showNotification(`Erro: ${error.message}`, 'error');
-    });
-
-    signOutBtn.addEventListener('click', async () => {
-        await _supabase.auth.signOut();
-    });
-
+    registerForm.addEventListener('submit', async (e) => { e.preventDefault(); const email = e.target.querySelector('#register-email').value; const password = e.target.querySelector('#register-password').value; const { error } = await _supabase.auth.signUp({ email, password }); if (error) { showNotification(`Erro: ${error.message}`, 'error'); } else { showNotification('Conta criada! Verifique seu email.', 'success'); showLoginLink.click(); } });
+    loginForm.addEventListener('submit', async (e) => { e.preventDefault(); const email = e.target.querySelector('#login-email').value; const password = e.target.querySelector('#login-password').value; const { error } = await _supabase.auth.signInWithPassword({ email, password }); if (error) showNotification(`Erro: ${error.message}`, 'error'); });
+    signOutBtn.addEventListener('click', async () => { await _supabase.auth.signOut(); });
     showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('login-form-container').classList.add('view-hidden'); document.getElementById('register-form-container').classList.remove('view-hidden'); });
     showLoginLink.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('register-form-container').classList.add('view-hidden'); document.getElementById('login-form-container').classList.remove('view-hidden'); });
 
@@ -104,8 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAll();
     };
 
-    const loadProjects = async () => { const { data, error } = await _supabase.from('projects').select('*').eq('user_id', user.id); if (error) { projects = []; } else { projects = data; } };
-    const loadTasks = async (projectId) => { if (!projectId) { tasks = []; return; } const { data, error } = await _supabase.from('tasks').select('*').eq('project_id', projectId); if (error) { tasks = []; } else { tasks = data; } };
+    const loadProjects = async () => { const { data } = await _supabase.from('projects').select('*').eq('user_id', user.id); projects = data || []; };
+    const loadTasks = async (projectId) => { if (!projectId) { tasks = []; return; } const { data } = await _supabase.from('tasks').select('*').eq('project_id', projectId); tasks = data || []; };
+    
     const renderAll = () => { renderProjects(); renderTasks(); };
 
     const renderProjects = () => {
@@ -122,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderTasks = () => {
         kanbanBoard.innerHTML = '';
         const activeProject = projects.find(p => p.id === activeProjectId);
-        currentProjectTitle.textContent = activeProject ? activeProject.name : "Nenhum projeto selecionado";
-        if (!activeProject) { taskCounter.textContent = 'Crie ou selecione um projeto para começar.'; return; }
+        currentProjectTitle.textContent = activeProject ? activeProject.name : "Nenhum projeto";
+        if (!activeProject) { taskCounter.textContent = 'Crie ou selecione um projeto.'; return; }
         const pendingTasks = tasks.filter(t => t.status !== 'Concluído').length;
         taskCounter.textContent = `${pendingTasks} tarefas pendentes.`;
         const statuses = ['A Fazer', 'Em Andamento', 'Concluído'];
@@ -150,15 +145,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================================================================
     // --- EVENT LISTENERS DA APLICAÇÃO ---
     // ==================================================================
-    projectForm.addEventListener('submit', async (e) => { e.preventDefault(); const name = projectInput.value.trim(); if (name && user) { const { data, error } = await _supabase.from('projects').insert([{ name, user_id: user.id }]).select(); if (error) { showNotification('Erro ao criar projeto.', 'error'); } else { projectInput.value = ''; await loadProjects(); activeProjectId = data[0].id; await loadTasks(activeProjectId); renderAll(); } } });
+    mainNav.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (link && link.dataset.view) {
+            e.preventDefault();
+            showMainView(`view-${link.dataset.view}`);
+        }
+    });
+
+    projectForm.addEventListener('submit', async (e) => { e.preventDefault(); const name = projectInput.value.trim(); if (name && user) { const { data } = await _supabase.from('projects').insert([{ name, user_id: user.id }]).select(); if (data) { projectInput.value = ''; await loadProjects(); activeProjectId = data[0].id; await loadTasks(activeProjectId); renderAll(); } } });
     projectList.addEventListener('click', async (e) => { const li = e.target.closest('li[data-project-id]'); if (li) { activeProjectId = parseInt(li.dataset.projectId); localStorage.setItem(`lastActiveProject_${user.id}`, activeProjectId); await loadTasks(activeProjectId); renderAll(); } });
-    taskForm.addEventListener('submit', async (e) => { e.preventDefault(); const text = taskForm.querySelector('#task-input').value.trim(); const due_date = taskForm.querySelector('#task-due-date').value; const priority = taskForm.querySelector('#task-priority').value; if (text && activeProjectId && user) { const { error } = await _supabase.from('tasks').insert([{ text, due_date: due_date || null, priority, status: 'A Fazer', project_id: activeProjectId, user_id: user.id }]); if (error) { showNotification('Erro ao criar tarefa.', 'error'); } else { taskForm.reset(); await loadTasks(activeProjectId); renderAll(); } } });
+    taskForm.addEventListener('submit', async (e) => { e.preventDefault(); const text = e.target.querySelector('#task-input').value.trim(); if (text && activeProjectId && user) { await _supabase.from('tasks').insert([{ text, status: 'A Fazer', project_id: activeProjectId, user_id: user.id }]); e.target.reset(); await loadTasks(activeProjectId); renderAll(); } });
 
     let draggedTaskId = null;
     kanbanBoard.addEventListener('dragstart', e => { if (e.target.classList.contains('task-card')) { draggedTaskId = e.target.dataset.taskId; e.target.classList.add('dragging'); } });
     kanbanBoard.addEventListener('dragend', e => { if (e.target.classList.contains('task-card')) { e.target.classList.remove('dragging'); } });
     kanbanBoard.addEventListener('dragover', e => { e.preventDefault(); });
-    kanbanBoard.addEventListener('drop', async (e) => { e.preventDefault(); const column = e.target.closest('.kanban-column'); if (column && draggedTaskId) { const newStatus = column.dataset.status; const { error } = await _supabase.from('tasks').update({ status: newStatus }).eq('id', draggedTaskId); if(error) { showNotification('Erro ao mover tarefa.', 'error'); } else { const movedTask = tasks.find(t => t.id == draggedTaskId); if(movedTask) movedTask.status = newStatus; renderAll(); } } });
-
-    const showNotification = (message, type = 'success') => { const notification = document.createElement('div'); notification.className = `toast`; notification.classList.add(type); notification.textContent = message; notificationContainer.appendChild(notification); setTimeout(() => notification.remove(), 3500); };
+    kanbanBoard.addEventListener('drop', async (e) => { e.preventDefault(); const column = e.target.closest('.kanban-column'); if (column && draggedTaskId) { const newStatus = column.dataset.status; await _supabase.from('tasks').update({ status: newStatus }).eq('id', draggedTaskId); const movedTask = tasks.find(t => t.id == draggedTaskId); if(movedTask) movedTask.status = newStatus; renderAll(); } });
+    
+    // --- INICIALIZAÇÃO ---
+    showMainView('projects'); // Garante que a vista de projetos é a inicial
 });
