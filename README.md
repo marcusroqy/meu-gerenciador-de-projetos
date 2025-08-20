@@ -34,7 +34,7 @@ Um gerenciador de projetos e tarefas no estilo Kanban, construído com HTML, CSS
 ### 🔗 Deploy
 
 Acesse a versão ao vivo do projeto aqui:
-* **[Link para o App](URL_DO_SEU_PROJETO_NA_VERCEL_AQUI)**
+* **[Link para o App](https://meu-gerenciador-de-projetos.vercel.app)**
 
 ### ⚙️ Como Rodar o Projeto Localmente
 
