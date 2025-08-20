@@ -1,19 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Estado
+  // Estado básico
   let projects = [{id:'1', name:'Primeiro Projeto'}, {id:'2', name:'Exemplo'}];
-  let tasks = [
-    {id:'t1',projectId:'1',text:'Minha primeira tarefa',status:'A Fazer',
-     priority:'Média',comments:[],createdAt:getNowISO(), dueDate:"", desc:""}
-  ];
+  let tasks = [{id:'t1', projectId:'1', text:'Minha primeira tarefa', status:'A Fazer', priority:'Média', comments:[], createdAt:getNowISO(), dueDate:"", desc:""}];
   let activeProjectId = projects[0].id;
   let user = {name:"Usuário", avatar:""};
 
-  // Sidebar, navegação e projetos iguais
-  document.getElementById('projects-toggle').onclick = (e)=>{
-    e.preventDefault();
-    document.getElementById('projects-cascade').classList.toggle('view-hidden');
-    document.getElementById('arrow-projects').classList.toggle('opened');
+  // ---- THEME BUTTON (Lua/Sol) ----
+  const themeBtn = document.getElementById("theme-toggle-btn");
+  const themeIcon = document.getElementById("theme-icon");
+  function updateThemeIcon() {
+    themeIcon.textContent = document.body.classList.contains("dark-mode") ? "dark_mode" : "light_mode";
+  }
+  themeBtn.onclick = () => {
+    document.body.classList.toggle("dark-mode");
+    localStorage.setItem("darkModeEnabled",document.body.classList.contains("dark-mode"));
+    updateThemeIcon();
   };
+  if(localStorage.getItem("darkModeEnabled")==='true') document.body.classList.add("dark-mode");
+  updateThemeIcon();
+
+  // ---- Navegação entre views ----
   document.querySelectorAll('.main-nav .nav-item > a[data-view]').forEach(link => {
     link.onclick = e => {
       e.preventDefault();
@@ -21,36 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
       link.parentElement.classList.add('active');
       document.querySelectorAll('.main-view').forEach(v=>v.classList.add('view-hidden'));
       document.getElementById('view-'+link.dataset.view).classList.remove('view-hidden');
-      if(link.dataset.view==="dashboard") renderDashboard();
+      if(link.dataset.view === "projects") renderTasks();
+      if(link.dataset.view === "dashboard") renderDashboard();
     };
   });
 
-  // Avatar/nome (edição só nas configs)
-  function updateUserHeader() {
-    const avatarEl = document.getElementById('user-avatar');
-    avatarEl.textContent=user.name[0];
-    avatarEl.style.backgroundImage=user.avatar?`url('${user.avatar}')`:"";
-    avatarEl.style.backgroundSize=user.avatar?"cover":"";
-    document.getElementById('user-name').textContent=user.name;
-  }
-  updateUserHeader();
-  document.getElementById('user-settings-form').onsubmit = function(e){
-    e.preventDefault();
-    user.name = document.getElementById('profile-name').value || "Usuário";
-    user.avatar = document.getElementById("profile-avatar-img").getAttribute("src") || "";
-    updateUserHeader();
-    document.querySelectorAll('.main-view').forEach(v=>v.classList.add('view-hidden'));
-    document.getElementById('view-home').classList.remove('view-hidden');
-  };
-  document.getElementById('profile-avatar-input').onchange = function(e){
-    let file = this.files[0];
-    if(file){
-      let reader = new FileReader();
-      reader.onload = ()=>{ document.getElementById("profile-avatar-img").src=reader.result;}
-      reader.readAsDataURL(file);
-    }
-  };
-
+  // ---- Projetos ----
   function renderProjects() {
     const projectList = document.getElementById('project-list');
     projectList.innerHTML = '';
@@ -58,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const li = document.createElement('li');
       li.textContent = project.name;
       li.className = project.id === activeProjectId ? 'active-project' : '';
-      li.onclick = ()=> { selectProject(project.id);}
+      li.onclick = () => { selectProject(project.id);}
       projectList.appendChild(li);
     });
   }
@@ -83,12 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('project-input').value="";
   };
 
-  // Util
-  function getNowISO() {
-    const now = new Date();
-    const tz = now.getTimezoneOffset() * 60000;
-    return new Date(now - tz).toISOString().slice(0,16);
-  }
+  // ---- Utils ----
   function corPriority(priority){
     if(priority==='Baixa')return "task-priority-low";
     if(priority==='Média'||priority==='medium')return "task-priority-média";
@@ -96,7 +73,24 @@ document.addEventListener('DOMContentLoaded', () => {
     return "task-priority-média";
   }
 
-  // Kanban centralizado
+  // LABEL DE VENCIMENTO (HOJE, AMANHÃ, ATRASADO, ...)
+  function formatVencimentoLabel(dateStr) {
+    if(!dateStr) return '';
+    const [data,horaRaw] = dateStr.split('T');
+    const [ano,mes,dia] = data.split('-').map(x=>parseInt(x,10));
+    const target = new Date(ano,mes-1,dia);
+    const now = new Date();
+    target.setHours(0,0,0,0); now.setHours(0,0,0,0);
+    const diffDias = Math.round((target - now)/86400000);
+    let hora = '';
+    if(horaRaw && horaRaw.length >= 5) hora = ', ' + horaRaw.slice(0,5);
+    if(diffDias === 0) return `<span class="vencimento-label hoje">Hoje${hora}</span>`;
+    if(diffDias === 1) return `<span class="vencimento-label amanha">Amanhã${hora}</span>`;
+    if(diffDias < 0) return `<span class="vencimento-label atrasado">Atrasado${hora}</span>`;
+    return `<span class="vencimento-label futuro">${("0"+dia).slice(-2)}/${("0"+mes).slice(-2)}${hora}</span>`;
+  }
+
+  // ---- Kanban/Tasks LIMPO (sem data de criação no card) ----
   function renderTasks() {
     const kanbanBoard = document.getElementById('kanban-board');
     kanbanBoard.innerHTML = '';
@@ -108,8 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
       col.innerHTML=`<h3>${status}</h3><div class="tasks-container"></div>`;
       const tc = col.querySelector('.tasks-container');
       tasks.filter(t=>t.projectId===activeProjectId&&t.status===status).forEach(task=>{
-        const dateInfo = task.dueDate ? `<span>Vence: ${task.dueDate.split('-').reverse().join('/')}</span>` : '';
-        const createdInfo = task.createdAt ? `<span>Criada: ${task.createdAt.replace('T',' ').slice(0,16)}</span>` : '';
         const card=document.createElement('div');
         card.className='task-card'; card.setAttribute('draggable','true'); card.dataset.taskId=task.id;
         card.innerHTML=`
@@ -117,26 +109,23 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="task-priority-indicator ${corPriority(task.priority)}"></span>
             ${task.text}
             <span class="task-priority-label">${task.priority}</span>
-          </div>
-          <div class="task-meta">
-            ${createdInfo}${dateInfo?" • "+dateInfo:""}
+            ${task.dueDate ? formatVencimentoLabel(task.dueDate) : ''}
           </div>
           <div class="task-actions">
             <button title="Editar" onclick="window.editTask('${task.id}')"><span class="material-symbols-outlined">edit</span></button>
+            <button title="Excluir" onclick="window.deleteTask('${task.id}')" style="color:#ef4444;"><span class="material-symbols-outlined">delete</span></button>
           </div>`;
         tc.appendChild(card);
       });
       kanbanBoard.appendChild(col);
     });
-    // Drag and drop igual ao anterior...
+    // Drag and drop
     let dragTaskId = null;
     document.querySelectorAll('.task-card').forEach(card=>{
       card.ondragstart = (e)=>{ dragTaskId = card.dataset.taskId; setTimeout(()=>card.classList.add('dragging'),1);}
       card.ondragend = (e)=>{ dragTaskId = null; card.classList.remove('dragging'); dndClear();}
     });
-    function dndClear(){
-      document.querySelectorAll('.kanban-column').forEach(c=>c.classList.remove('drag-hover'));
-    }
+    function dndClear(){ document.querySelectorAll('.kanban-column').forEach(c=>c.classList.remove('drag-hover')); }
     document.querySelectorAll('.kanban-column').forEach(col=>{
       col.ondragover = (e)=>{e.preventDefault();dndClear();col.classList.add('drag-hover');};
       col.ondragleave = dndClear;
@@ -155,6 +144,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('task-counter').textContent = tasks.filter(t=>t.projectId===activeProjectId&&t.status!=='Concluído').length+" tarefas pendentes.";
   }
 
+  // ---- Deletar tarefa ----
+  window.deleteTask = function(id) {
+    if(confirm('Tem certeza que deseja deletar esta tarefa?')) {
+      tasks = tasks.filter(t => t.id !== id);
+      renderTasks();
+      if(typeof renderDashboard === "function") renderDashboard();
+    }
+  }
+
+  // ---- Adicionar tarefa ----
   document.getElementById('task-form').onsubmit = function(e){
     e.preventDefault();
     const text = document.getElementById('task-input').value.trim();
@@ -167,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTasks();
   };
 
-  // MODAL EDIÇÃO + COMENTÁRIOS
+  // ---- Editar tarefa + comentários + info criação NO MODAL ----
   window.editTask = (taskId) => {
     const task = tasks.find(t=>t.id===taskId);
     if(!task) return;
@@ -185,6 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </select>
         <label>Vencimento:</label>
         <input id="modal-task-duedate" type="date" value="${task.dueDate||''}"/>
+        <div class="task-info">
+          <small style="color:var(--text-secondary)">
+            Criada em: ${(task.createdAt||'').replace('T',' ').slice(0,16)}
+          </small>
+        </div>
         <label>Observação:</label>
         <textarea id="modal-task-desc" placeholder="Descrição extra">${task.desc||''}</textarea>
         <label>Comentários:</label>
@@ -213,17 +217,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(modal);
   };
 
-  // --- Dashboard Premium: gráfico funcional ---
+  // ---- Dashboard moderno ----
   function renderDashboard() {
-    // Cards
     document.getElementById('stat-projects').textContent = projects.length;
     document.getElementById('stat-tasks-done').textContent = tasks.filter(x=>x.status==='Concluído').length;
     document.getElementById('stat-tasks-todo').textContent = tasks.filter(x=>x.status!=='Concluído').length;
-    // Hoje
     const hoje = (new Date()).toISOString().slice(0,10);
     document.getElementById('stat-today').textContent = tasks.filter(x=>(x.createdAt||'').slice(0,10)===hoje).length;
-
-    // Pie Chart.js
     const pie = document.getElementById('dashboard-pie');
     if(window.dashboardPie) window.dashboardPie.destroy();
     const aFazer=tasks.filter(x=>x.status==='A Fazer').length;
@@ -250,25 +250,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Modo escuro/claro automático (que respeita sistema, Ctrl+J alterna) ---
-  function preferDark() {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  // ---- Usuário no topo/configurações ----
+  function updateUserHeader() {
+    const avatarEl = document.getElementById('user-avatar');
+    avatarEl.textContent=user.name[0];
+    avatarEl.style.backgroundImage=user.avatar?`url('${user.avatar}')`:"";
+    avatarEl.style.backgroundSize=user.avatar?"cover":"";
+    document.getElementById('user-name').textContent = user.name;
   }
-  function applyInitialTheme() {
-    if(localStorage.getItem("darkModeEnabled")==='true' || (!localStorage.getItem("darkModeEnabled")&&preferDark()))
-      document.body.classList.add("dark-mode");
-    else
-      document.body.classList.remove("dark-mode");
-  }
-  applyInitialTheme();
-  document.addEventListener("keydown",e=>{
-    if(e.ctrlKey && (e.key==="j"||e.key==="J")) {
-      document.body.classList.toggle("dark-mode");
-      localStorage.setItem("darkModeEnabled",document.body.classList.contains("dark-mode"));
-      e.preventDefault();
+  updateUserHeader();
+  document.getElementById('user-settings-form').onsubmit = function(e){
+    e.preventDefault();
+    user.name = document.getElementById('profile-name').value || "Usuário";
+    user.avatar = document.getElementById("profile-avatar-img").getAttribute("src") || "";
+    updateUserHeader();
+    document.querySelectorAll('.main-view').forEach(v=>v.classList.add('view-hidden'));
+    document.getElementById('view-home').classList.remove('view-hidden');
+  };
+  document.getElementById('profile-avatar-input').onchange = function(e){
+    let file = this.files[0];
+    if(file){
+      let reader = new FileReader();
+      reader.onload = ()=>{ document.getElementById("profile-avatar-img").src=reader.result;}
+      reader.readAsDataURL(file);
     }
-  });
+  };
 
-  // Render inicial
+  function getNowISO() {
+    const now = new Date();
+    const tz = now.getTimezoneOffset() * 60000;
+    return new Date(now - tz).toISOString().slice(0,16);
+  }
+
+  document.getElementById('projects-toggle').onclick = (e)=>{
+    e.preventDefault();
+    document.getElementById('projects-cascade').classList.toggle('view-hidden');
+    document.getElementById('arrow-projects').classList.toggle('opened');
+  };
+
   renderTasks();
 });

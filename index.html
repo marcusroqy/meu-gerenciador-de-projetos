@@ -18,31 +18,56 @@
   <div class="app-main">
     <aside class="projects-sidebar">
       <div class="sidebar-header">
-        <div class="user-avatar" id="user-avatar"></div>
+        <div class="user-avatar" id="user-avatar">U</div>
         <div class="user-info">
           <span class="user-name" id="user-name">Usuário</span>
         </div>
       </div>
       <nav class="main-nav">
         <ul>
-          <li class="nav-item nav-home active"><a href="#" data-view="home"><span class="icon material-symbols-outlined">home</span><span>Início</span></a></li>
+          <li class="nav-item nav-home active">
+            <a href="#" data-view="home">
+              <span class="icon material-symbols-outlined">home</span>
+              <span>Início</span>
+            </a>
+          </li>
           <li class="nav-item nav-projects cascade-parent">
-            <a href="#" id="projects-toggle"><span class="icon material-symbols-outlined">folder_open</span><span>Projetos</span><span class="material-symbols-outlined arrow" id="arrow-projects">expand_more</span></a>
+            <a href="#" id="projects-toggle">
+              <span class="icon material-symbols-outlined">folder_open</span>
+              <span>Projetos</span>
+              <span class="material-symbols-outlined arrow" id="arrow-projects">expand_more</span>
+            </a>
             <div class="cascade-content view-hidden" id="projects-cascade">
               <form id="project-form" class="project-form-modern">
                 <input type="text" id="project-input" placeholder="Novo projeto" autocomplete="off" />
-                <button type="submit" title="Adicionar"><span class="material-symbols-outlined">add</span></button>
+                <button type="submit" title="Adicionar">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
               </form>
               <ul id="project-list" class="project-list-modern"></ul>
             </div>
           </li>
-          <li class="nav-item nav-dashboard"><a href="#" data-view="dashboard"><span class="icon material-symbols-outlined">monitoring</span><span>Dashboard</span></a></li>
-          <li class="nav-item nav-settings"><a href="#" data-view="settings"><span class="icon material-symbols-outlined">settings</span><span>Configurações</span></a></li>
+          <li class="nav-item nav-dashboard">
+            <a href="#" data-view="dashboard">
+              <span class="icon material-symbols-outlined">monitoring</span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item nav-settings">
+            <a href="#" data-view="settings">
+              <span class="icon material-symbols-outlined">settings</span>
+              <span>Configurações</span>
+            </a>
+          </li>
         </ul>
       </nav>
-      <div class="sidebar-footer"><button id="sign-out-btn" class="action-btn">Sair <span class="material-symbols-outlined">logout</span></button></div>
+      <div class="sidebar-footer">
+        <button id="sign-out-btn" class="action-btn">
+          Sair <span class="material-symbols-outlined">logout</span>
+        </button>
+      </div>
     </aside>
-    <!-- Views principais -->
+
     <main class="main-content">
       <!-- Início -->
       <section id="view-home" class="main-view">
@@ -51,7 +76,8 @@
           <p>Bem-vindo ao seu gerenciador!</p>
         </div>
       </section>
-      <!-- Projetos/Painel Kanban -->
+
+      <!-- Projetos/Kanban -->
       <section id="view-projects" class="main-view view-hidden">
         <div class="container">
           <h1 id="current-project-title">Primeiro Projeto</h1>
@@ -69,6 +95,7 @@
           <div id="kanban-board"></div>
         </div>
       </section>
+
       <!-- Dashboard -->
       <section id="view-dashboard" class="main-view view-hidden">
         <div class="container">
@@ -94,18 +121,22 @@
             </div>
             <div class="dashboard-graph-area">
               <canvas id="dashboard-pie" height="160"></canvas>
-              <div id="dashboard-empty-pie" style="display:none;color:#888;font-size:15px;margin-top:25px;text-align:center;">Sem tarefas para mostrar!</div>
+              <div id="dashboard-empty-pie" style="display:none;color:#888;font-size:15px;margin-top:25px;text-align:center;">
+                Sem tarefas para mostrar!
+              </div>
             </div>
           </div>
         </div>
       </section>
+
       <!-- Configurações -->
       <section id="view-settings" class="main-view view-hidden">
         <div class="container settings-container">
           <h1>Configurações</h1>
           <form id="user-settings-form" class="settings-form">
             <div class="avatar-upload">
-              <img id="profile-avatar-img" class="profile-avatar-img" src="https://ui-avatars.com/api/?name=Usuário&background=3b82f6&color=fff" alt="Avatar"/>
+              <img id="profile-avatar-img" class="profile-avatar-img" 
+                   src="https://ui-avatars.com/api/?name=Usuário&background=3b82f6&color=fff" alt="Avatar"/>
               <label class="avatar-upload-label">
                 <input type="file" id="profile-avatar-input" style="display:none" accept="image/*"/>
                 Alterar Foto
@@ -129,6 +160,7 @@
       </section>
     </main>
   </div>
+
   <div id="notification-container"></div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js"></script>

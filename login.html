@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - Gerenciador de Projetos</title>
+  <link rel="stylesheet" href="style.css"> <!-- usa o MESMO style.css! -->
+  <style>
+    /* Você pode personalizar, mas já funciona com o style.css importado */
+    .login-wrapper {
+      display: flex;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      overflow: hidden;
+      width: 100%;
+      max-width: 1000px;
+      min-height: 600px;
+      margin: 60px auto;
+    }
+    .login-left {
+      flex: 1;
+      padding: 60px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #fff;
+    }
+    .login-right {
+      flex: 1;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+      padding: 60px 40px;
+    }
+    .logo-icon {
+      width: 80px; height: 80px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px; font-weight: bold;
+      margin-bottom: 30px;
+    }
+    .right-title {
+      font-size: 32px; font-weight: 700;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+    .right-subtitle {
+      font-size: 18px;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 16px;
+    }
+    .btn-primary:hover { background: #4338ca; }
+    .signup-link {
+      text-align: left;
+      margin-top: 24px;
+      color: #64748b;
+      font-size: 14px;
+    }
+    .signup-link a {
+      color: #4f46e5;
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .signup-link a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .login-wrapper { flex-direction: column; margin: 20px; }
+      .login-left, .login-right { padding: 40px 30px; }
+      .login-right { order: -1; min-height: 300px; }
+    }
+  </style>
+</head>
+<body style="background:#f1f5f9;">
+  <div class="login-wrapper">
+    <div class="login-left">
+      <h1>Bem-vindo de volta!</h1>
+      <p class="subtitle">Faça login para acessar seus projetos.</p>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+      <div class="signup-link">
+        Não tem uma conta? <a href="#" id="demo-access">Acesso Demo</a>
+      </div>
+    </div>
+    <div class="login-right">
+      <div class="logo-icon">📋</div>
+      <h2 class="right-title">Transforme o Caos em Ordem</h2>
+      <p class="right-subtitle">Sua plataforma definitiva para gerenciamento de projetos e tarefas.</p>
+    </div>
+  </div>
+  <script>
+    function accessApp() {
+      window.location.href = 'index.html';
+    }
+    document.getElementById('login-form').onsubmit = function(e){
+      e.preventDefault();
+      accessApp();
+    };
+    document.getElementById('demo-access').onclick = function(e){
+      e.preventDefault();
+      accessApp();
+    };
+  </script>
+</body>
+</html>
