@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -58,46 +57,28 @@
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li class="nav-item"><a href="#" data-view="home"><span class="icon material-symbols-outlined">inbox</span> Início</a></li>
-                    <li id="projects-nav-item" class="nav-item active expanded">
-                        <a href="#" id="project-toggle-btn">
-                            <span class="icon material-symbols-outlined">list_alt</span> 
-                            Projetos
-                            <span class="chevron material-symbols-outlined">expand_more</span>
-                        </a>
-                        <div class="project-submenu">
-                            <div class="project-list-container">
-                                <h3>MEUS PROJETOS</h3>
-                                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit" title="Adicionar">+</button></form>
-                                <ul id="project-list"></ul>
-                            </div>
-                        </div>
-                    </li>
-                    <li class="nav-item"><a href="#" data-view="dashboard-full"><span class="icon material-symbols-outlined">monitoring</span> Dashboard</a></li>
-                    <li class="nav-item"><a href="#" data-view="settings"><span class="icon material-symbols-outlined">settings</span> Configurações</a></li>
+                    <li class="nav-item active"><a href="#"><span class="icon material-symbols-outlined">list_alt</span> Projetos</a></li>
                 </ul>
             </nav>
+            <div class="project-list-container">
+                <h3>Meus Projetos</h3>
+                <form id="project-form"><input type="text" id="project-input" placeholder="Novo projeto..." autocomplete="off"><button type="submit" title="Adicionar">+</button></form>
+                <ul id="project-list"></ul>
+            </div>
             <div class="sidebar-footer">
-                <button id="theme-toggle" class="theme-btn" title="Mudar Tema"><span class="material-symbols-outlined">dark_mode</span></button>
-                <button id="sign-out-btn" class="action-btn">Sair</button>
+                <button id="sign-out-btn" class="action-btn">Sair <span class="material-symbols-outlined">logout</span></button>
             </div>
         </aside>
         
         <div class="main-content">
-            <div id="view-projects" class="main-view">
-                <main class="tasks-view">
-                    <div class="container">
-                        <h1 id="current-project-title"></h1>
-                        <p id="task-counter"></p>
-                        <form id="task-form"><input type="text" id="task-input" placeholder="Adicionar nova tarefa..." autocomplete="off"><input type="date" id="task-due-date"><select id="task-priority"><option value="low">Baixa</option><option value="medium" selected>Média</option><option value="high">Alta</option></select><button type="submit" class="add-btn">Adicionar</button></form>
-                        <div id="kanban-board"></div>
-                    </div>
-                </main>
-                <aside class="dashboard-sidebar"></aside>
-            </div>
-            <div id="view-home" class="main-view view-hidden"> </div>
-            <div id="view-dashboard-full" class="main-view view-hidden"> </div>
-            <div id="view-settings" class="main-view view-hidden"> </div>
+            <main class="tasks-view">
+                <div class="container">
+                    <h1 id="current-project-title"></h1>
+                    <p id="task-counter"></p>
+                    <form id="task-form"><input type="text" id="task-input" placeholder="Adicionar nova tarefa..." autocomplete="off"><input type="date" id="task-due-date"><select id="task-priority"><option value="low">Baixa</option><option value="medium" selected>Média</option><option value="high">Alta</option></select><button type="submit" class="add-btn">Adicionar</button></form>
+                    <div id="kanban-board"></div>
+                </div>
+            </main>
         </div>
     </div>
     
