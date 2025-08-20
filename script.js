@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURAÇÃO DO SUPABASE ---
     // ==================================================================
     // !! IMPORTANTE !! Cole suas chaves do Supabase aqui
-    const SUPABASE_URL = 'COLE_SUA_URL_AQUI';
-    const SUPABASE_ANON_KEY = 'COLE_SUA_CHAVE_ANON_AQUI';
+    const SUPABASE_URL = 'https://meu-gerenciador-de-projetos-6uyhp3ddy-marcus-projects-f8aba2b2.vercel.app';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnaXNoZ3VvcHRxYnhtc25obmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NDMzODksImV4cCI6MjA3MTIxOTM4OX0.RmbvPa2h5Jl33A1LetqufGw7kuGPJZKouT0VEp2icxw';
 
     const { createClient } = supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
