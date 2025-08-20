@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Estado básico
-  let projects = [{id:'1', name:'Primeiro Projeto'}, {id:'2', name:'Exemplo'}];
-  let tasks = [{id:'t1', projectId:'1', text:'Minha primeira tarefa', status:'A Fazer', priority:'Média', comments:[], createdAt:getNowISO(), dueDate:"", desc:""}];
-  let activeProjectId = projects[0].id;
+  const supabase = window.supabaseClient;
+  let currentUser = null;
+  let projects = [];
+  let tasks = [];
+  let activeProjectId = null;
   let user = {name:"Usuário", avatar:""};
 
   // ---- THEME BUTTON (Lua/Sol) ----
@@ -52,16 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('view-projects').classList.remove('view-hidden');
     renderTasks();
   }
-  renderProjects(); selectProject(activeProjectId);
+  renderProjects();
 
-  document.getElementById('project-form').onsubmit = function(e){
+  document.getElementById('project-form').onsubmit = async function(e){
     e.preventDefault();
     const name = document.getElementById('project-input').value.trim();
-    if(!name) return;
-    const id = Date.now()+"";
-    projects.unshift({id,name});
+    if(!name || !currentUser) return;
+    const { data, error } = await supabase.from('projects').insert({ name, user_id: currentUser.id }).select().single();
+    if(error){ alert('Erro ao criar projeto'); return; }
+    projects.unshift(data);
+    activeProjectId = data.id;
     renderProjects();
-    selectProject(id);
+    selectProject(data.id);
     document.getElementById('project-input').value="";
   };
 
@@ -113,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="task-actions">
             <button title="Editar" onclick="window.editTask('${task.id}')"><span class="material-symbols-outlined">edit</span></button>
-            <button title="Excluir" onclick="window.deleteTask('${task.id}')" style="color:#ef4444;"><span class="material-symbols-outlined">delete</span></button>
           </div>`;
         tc.appendChild(card);
       });
@@ -129,13 +132,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.kanban-column').forEach(col=>{
       col.ondragover = (e)=>{e.preventDefault();dndClear();col.classList.add('drag-hover');};
       col.ondragleave = dndClear;
-      col.ondrop = function(e){
+      col.ondrop = async function(e){
         e.preventDefault();
         if(!dragTaskId) return;
         const status = col.dataset.status;
         const task = tasks.find(t=>t.id===dragTaskId);
         if(task && task.status!==status){
           task.status = status;
+          await supabase.from('tasks').update({ status }).eq('id', task.id);
           renderTasks();
         }
         dndClear();
@@ -145,8 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ---- Deletar tarefa ----
-  window.deleteTask = function(id) {
+  window.deleteTask = async function(id) {
     if(confirm('Tem certeza que deseja deletar esta tarefa?')) {
+      await supabase.from('tasks').delete().eq('id', id);
       tasks = tasks.filter(t => t.id !== id);
       renderTasks();
       if(typeof renderDashboard === "function") renderDashboard();
@@ -154,69 +159,80 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ---- Adicionar tarefa ----
-  document.getElementById('task-form').onsubmit = function(e){
+  document.getElementById('task-form').onsubmit = async function(e){
     e.preventDefault();
     const text = document.getElementById('task-input').value.trim();
     const priority = document.getElementById('task-priority').value;
     const dueDate = document.getElementById('task-due-date').value;
-    if(!text||!activeProjectId) return;
-    tasks.push({ id:Date.now()+"",projectId:activeProjectId,text,status:'A Fazer',priority,comments:[],createdAt:getNowISO(),dueDate:dueDate||"",desc:"" });
+    if(!text||!activeProjectId||!currentUser) return;
+    const payload = { user_id: currentUser.id, project_id: activeProjectId, text, status:'A Fazer', priority, comments:[], due_date: dueDate||null, desc: "" };
+    const { data, error } = await supabase.from('tasks').insert(payload).select().single();
+    if(error){ alert('Erro ao criar tarefa'); return; }
+    tasks.push({ id:data.id, projectId:data.project_id, text:data.text, status:data.status, priority:data.priority, comments:data.comments||[], createdAt:data.created_at, dueDate:data.due_date||"", desc:data.desc||"" });
     document.getElementById('task-input').value="";
     document.getElementById('task-due-date').value="";
     renderTasks();
+    if(typeof renderDashboard === "function") renderDashboard();
   };
 
   // ---- Editar tarefa + comentários + info criação NO MODAL ----
   window.editTask = (taskId) => {
-    const task = tasks.find(t=>t.id===taskId);
-    if(!task) return;
-    const modal = document.createElement('div');
-    modal.className="task-edit-modal";
-    modal.innerHTML = `
-      <div class="modal-content">
-        <label>Nome:</label>
-        <input id="modal-task-text" value="${task.text}"/>
-        <label>Prioridade:</label>
-        <select id="modal-task-priority">
-          <option value="Baixa" ${task.priority==='Baixa'?'selected':''}>Baixa</option>
-          <option value="Média" ${task.priority==='Média'?'selected':''}>Média</option>
-          <option value="Alta" ${task.priority==='Alta'?'selected':''}>Alta</option>
-        </select>
-        <label>Vencimento:</label>
-        <input id="modal-task-duedate" type="date" value="${task.dueDate||''}"/>
-        <div class="task-info">
-          <small style="color:var(--text-secondary)">
-            Criada em: ${(task.createdAt||'').replace('T',' ').slice(0,16)}
-          </small>
-        </div>
-        <label>Observação:</label>
-        <textarea id="modal-task-desc" placeholder="Descrição extra">${task.desc||''}</textarea>
-        <label>Comentários:</label>
-        <div class="comment-list">${task.comments&&task.comments.length?
-        task.comments.map(c=>`<div class="comment-row"><span class="comment-author">Comentário:</span>${c}</div>`).join('')
-        :'<div style="color:#888;">Sem comentários.</div>'}</div>
-        <form id="modal-comment-form">
-          <textarea id="comment-text" rows="2" placeholder="Adicionar comentário..."></textarea>
-          <div class="actions">
-            <button type="submit">Salvar</button>
-            <button type="button" onclick="this.closest('.task-edit-modal').remove()">Cancelar</button>
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      const modal = document.createElement('div');
+      modal.className = "task-edit-modal";
+      modal.innerHTML = `
+        <div class="modal-content">
+          <label>Nome:</label>
+          <input id="modal-task-text" value="${task.text}" />
+          <label>Prioridade:</label>
+          <select id="modal-task-priority">
+            <option value="Baixa" ${task.priority === 'Baixa' ? 'selected' : ''}>Baixa</option>
+            <option value="Média" ${task.priority === 'Média' ? 'selected' : ''}>Média</option>
+            <option value="Alta" ${task.priority === 'Alta' ? 'selected' : ''}>Alta</option>
+          </select>
+          <label>Vencimento:</label>
+          <input id="modal-task-duedate" type="date" value="${task.dueDate || ''}" />
+          <div class="task-info">
+            <small style="color:var(--text-secondary)">
+              Criada em: ${(task.createdAt || '').replace('T', ' ').slice(0, 16)}
+            </small>
           </div>
-        </form>
-      </div>`;
-    modal.querySelector('#modal-comment-form').onsubmit = e => {
-      e.preventDefault();
-      const txt = modal.querySelector('#comment-text').value.trim();
-      if(txt){ task.comments = task.comments||[]; task.comments.push(txt); }
-      task.text = modal.querySelector('#modal-task-text').value;
-      task.priority = modal.querySelector('#modal-task-priority').value;
-      task.dueDate = modal.querySelector('#modal-task-duedate').value;
-      task.desc = modal.querySelector('#modal-task-desc').value;
-      modal.remove();
-      renderTasks();
-    };
-    document.body.appendChild(modal);
-  };
-
+          <label>Observação:</label>
+          <textarea id="modal-task-desc" placeholder="Descrição extra">${task.desc || ''}</textarea>
+          <label>Comentários:</label>
+          <div class="comment-list">${task.comments && task.comments.length ?
+            task.comments.map(c => `<div class="comment-row"><span class="comment-author">Comentário:</span>${c}</div>`).join('')
+            : '<div style="color:#888;">Sem comentários.</div>'}</div>
+          <form id="modal-comment-form">
+            <textarea id="comment-text" rows="2" placeholder="Adicionar comentário..."></textarea>
+            <div class="actions">
+              <button type="submit">Salvar</button>
+              <button type="button" onclick="this.closest('.task-edit-modal').remove()">Cancelar</button>
+              <button type="button" style="background:#ef4444;color:#fff;margin-left:auto;margin-top:0;margin-bottom:0;" onclick="window.deleteTask('${task.id}');this.closest('.task-edit-modal').remove();">Excluir tarefa</button>
+            </div>
+          </form>
+        </div>`;
+      modal.querySelector('#modal-comment-form').onsubmit = async e => {
+        e.preventDefault();
+        const txt = modal.querySelector('#comment-text').value.trim();
+        if (txt) { task.comments = task.comments || []; task.comments.push(txt); }
+        task.text = modal.querySelector('#modal-task-text').value;
+        task.priority = modal.querySelector('#modal-task-priority').value;
+        task.dueDate = modal.querySelector('#modal-task-duedate').value;
+        task.desc = modal.querySelector('#modal-task-desc').value;
+        await supabase.from('tasks').update({
+          text: task.text,
+          priority: task.priority,
+          due_date: task.dueDate || null,
+          desc: task.desc,
+          comments: task.comments
+        }).eq('id', task.id);
+        modal.remove();
+        renderTasks();
+      };
+      document.body.appendChild(modal);
+    };    
   // ---- Dashboard moderno ----
   function renderDashboard() {
     document.getElementById('stat-projects').textContent = projects.length;
@@ -288,5 +304,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('arrow-projects').classList.toggle('opened');
   };
 
-  renderTasks();
+  async function loadData(){
+    const { data: { session } } = await supabase.auth.getSession();
+    currentUser = session?.user || null;
+    if(!currentUser) return;
+    const { data: projData } = await supabase.from('projects').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+    projects = projData || [];
+    if(!activeProjectId && projects.length) activeProjectId = projects[0].id;
+    const { data: taskData } = await supabase.from('tasks').select('*').eq('user_id', currentUser.id);
+    tasks = (taskData||[]).map(r=>({ id:r.id, projectId:r.project_id, text:r.text, status:r.status, priority:r.priority, comments:r.comments||[], createdAt:r.created_at, dueDate:r.due_date||"", desc:r.desc||"" }));
+    renderProjects();
+    if(activeProjectId) selectProject(activeProjectId);
+    if(typeof renderDashboard === "function") renderDashboard();
+  }
+
+  loadData();
 });

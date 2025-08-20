@@ -1,10 +1,13 @@
 <!DOCTYPE html>
+<!-- BUILD: v2 - Supabase auth + persistência + cache-busting -->
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login - Gerenciador de Projetos</title>
-  <link rel="stylesheet" href="style.css"> <!-- usa o MESMO style.css! -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=2"> <!-- usa o MESMO style.css! -->
   <style>
     /* Você pode personalizar, mas já funciona com o style.css importado */
     .login-wrapper {
@@ -94,7 +97,14 @@
     }
   </style>
 </head>
-<body style="background:#f1f5f9;">
+<body style="background: var(--bg-main);">
+  <header class="login-header" style="position:sticky;top:0;width:100%;box-sizing:border-box;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;background:var(--bg-content);border-bottom:1px solid var(--border-color);">
+    <span class="header-title">Gerenciador de Projetos</span>
+    <button id="theme-toggle-btn" title="Trocar tema" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;color:#64748b;font-size:22px;">
+      <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+      <span class="theme-label" style="font-size:14px;margin-left:8px;">Tema</span>
+    </button>
+  </header>
   <div class="login-wrapper">
     <div class="login-left">
       <h1>Bem-vindo de volta!</h1>
@@ -109,6 +119,7 @@
           <input type="password" id="password" required>
         </div>
         <button type="submit" class="btn-primary">Entrar</button>
+        <button type="button" id="signup-btn" class="btn-primary" style="background:#7c3aed;margin-top:8px;">Criar conta</button>
       </form>
       <div class="signup-link">
         Não tem uma conta? <a href="#" id="demo-access">Acesso Demo</a>
@@ -120,17 +131,58 @@
       <p class="right-subtitle">Sua plataforma definitiva para gerenciamento de projetos e tarefas.</p>
     </div>
   </div>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    function accessApp() {
-      window.location.href = 'index.html';
-    }
-    document.getElementById('login-form').onsubmit = function(e){
+    const supabaseUrl = 'https://dthqjhegmdkrzdpwrbtd.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0aHFqaGVnbWRrcnpkcHdyYnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NjkzNzcsImV4cCI6MjA3MTI0NTM3N30.hINpekk5PL9d-E0QJdC82Cc94Poxpwo__2g9hTAC2Ac';
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    // Tema (compartilha mesma lógica da index)
+    (function(){
+      const btn = document.getElementById('theme-toggle-btn');
+      const icon = document.getElementById('theme-icon');
+      function update(){ icon.textContent = document.body.classList.contains('dark-mode') ? 'dark_mode' : 'light_mode'; }
+      if(localStorage.getItem('darkModeEnabled')==='true') document.body.classList.add('dark-mode');
+      update();
+      btn && (btn.onclick = function(){
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkModeEnabled', document.body.classList.contains('dark-mode'));
+        update();
+      });
+    })();
+    // Redireciona para app se já estiver logado
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      if (session) window.location.href = 'index.html';
+    });
+
+    // Login real com email/senha
+    document.getElementById('login-form').onsubmit = async function(e){
       e.preventDefault();
-      accessApp();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) { alert(error.message); return; }
+      window.location.href = 'index.html';
     };
+    // Criar conta (sign up) usando os mesmos campos
+    document.getElementById('signup-btn').onclick = async function(){
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if(!email || !password){ alert('Informe email e senha.'); return; }
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if(error){ alert(error.message); return; }
+      if(data.session){
+        // projeto sem confirmação de email -> já logado
+        window.location.href = 'index.html';
+      } else {
+        alert('Cadastro criado! Verifique seu email para confirmar e depois faça login.');
+      }
+    };
+
+    // Acesso demo: apenas informativo por enquanto
     document.getElementById('demo-access').onclick = function(e){
       e.preventDefault();
-      accessApp();
+      alert('Crie uma conta no Supabase (Auth > Users) para acessar com email/senha.');
     };
   </script>
 </body>

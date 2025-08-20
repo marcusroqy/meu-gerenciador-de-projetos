@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- BUILD: v2 - Supabase auth + persistência + cache-busting -->
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
@@ -6,13 +7,14 @@
   <title>Gerenciador de Projetos</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
   <header class="app-header">
     <span class="header-title">Gerenciador de Projetos</span>
     <button id="theme-toggle-btn" title="Trocar tema">
       <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+      <span class="theme-label">Tema</span>
     </button>
   </header>
   <div class="app-main">
@@ -162,7 +164,26 @@
   </div>
 
   <div id="notification-container"></div>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseUrl = 'https://dthqjhegmdkrzdpwrbtd.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0aHFqaGVnbWRrcnpkcHdyYnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NjkzNzcsImV4cCI6MjA3MTI0NTM3N30.hINpekk5PL9d-E0QJdC82Cc94Poxpwo__2g9hTAC2Ac';
+    window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    // Guard de rota: se não autenticado, volta para login
+    window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      if (!session) window.location.href = 'login.html';
+    });
+    // Botão sair
+    window.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('sign-out-btn');
+      if (btn) btn.onclick = async () => {
+        await window.supabaseClient.auth.signOut();
+        window.location.href = 'login.html';
+      };
+    });
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="script.js"></script>
+  <script src="script.js?v=2"></script>
 </body>
 </html>
