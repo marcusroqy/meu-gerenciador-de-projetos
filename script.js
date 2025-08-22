@@ -1409,20 +1409,24 @@ const emailSystem = {
       if (e.target === modal) closeModal();
     });
 
-    // Eventos dos botões
+    // Eventos dos botões (preservar contexto)
+    const self = this;
     modal.querySelector('#reply-email-btn').addEventListener('click', () => {
+      console.log('=== BOTÃO RESPONDER CLICADO ===');
       closeModal();
-      this.replyToEmail(email);
+      self.replyToEmail(email);
     });
 
     modal.querySelector('#forward-email-btn').addEventListener('click', () => {
+      console.log('=== BOTÃO ENCAMINHAR CLICADO ===');
       closeModal();
-      this.forwardEmail(email);
+      self.forwardEmail(email);
     });
 
     modal.querySelector('#delete-email-btn').addEventListener('click', () => {
+      console.log('=== BOTÃO EXCLUIR CLICADO ===');
       closeModal();
-      this.deleteEmail(email.id);
+      self.deleteEmail(email.id);
     });
   },
 
@@ -1564,31 +1568,51 @@ const emailSystem = {
       if (e.target === modal) closeModal();
     });
 
-    // Enviar email
+    // Enviar email (preservar contexto)
+    const self = this;
     document.getElementById('compose-form').addEventListener('submit', (e) => {
+      console.log('=== FORMULÁRIO DE ENVIO SUBMETIDO ===');
       e.preventDefault();
-      this.sendEmail({
+      
+      const emailData = {
         to: document.getElementById('compose-to').value,
         subject: document.getElementById('compose-subject').value,
         message: document.getElementById('compose-message').value
-      });
+      };
+      
+      console.log('Dados coletados do formulário:', emailData);
+      self.sendEmail(emailData);
       closeModal();
     });
   },
 
   sendEmail(emailData) {
-    console.log('Enviando email:', emailData);
+    console.log('=== SEND EMAIL INICIADO ===');
+    console.log('Dados do email a enviar:', emailData);
+    
+    // Validar dados
+    if (!emailData.to || !emailData.subject || !emailData.message) {
+      console.error('Dados incompletos para envio:', emailData);
+      showError('Erro', 'Todos os campos são obrigatórios!');
+      return;
+    }
     
     // Simular envio (em produção, usaria Gmail API)
     const sendBtn = document.getElementById('compose-send');
+    console.log('Botão de envio encontrado:', !!sendBtn);
+    
     if (sendBtn) {
       setButtonLoading(sendBtn, true);
+      console.log('Loading aplicado ao botão');
     }
     
     // Simular delay de envio
     setTimeout(() => {
+      console.log('Simulação de envio completada');
+      
       if (sendBtn) {
         setButtonLoading(sendBtn, false);
+        console.log('Loading removido do botão');
       }
       
       // Mostrar sucesso
@@ -1624,23 +1648,39 @@ const emailSystem = {
   },
 
   replyToEmail(email) {
-    console.log('Respondendo ao email:', email);
-    this.openComposeModal({
-      to: email.senderEmail || email.sender,
-      subject: `Re: ${email.subject}`,
-      message: `\n\n--- Email Original ---\nDe: ${email.sender}\nData: ${email.time}\nAssunto: ${email.subject}\n\n${email.content || email.preview}\n\n--- Sua Resposta ---\n`,
-      isReply: true
-    });
+    console.log('=== REPLY TO EMAIL INICIADO ===');
+    console.log('Email para responder:', email);
+    
+    try {
+      this.openComposeModal({
+        to: email.senderEmail || email.sender,
+        subject: `Re: ${email.subject}`,
+        message: `\n\n--- Email Original ---\nDe: ${email.sender}\nData: ${email.time}\nAssunto: ${email.subject}\n\n${email.content || email.preview}\n\n--- Sua Resposta ---\n`,
+        isReply: true
+      });
+      console.log('Modal de resposta aberto com sucesso');
+    } catch (error) {
+      console.error('Erro ao abrir modal de resposta:', error);
+      showError('Erro', 'Não foi possível abrir o modal de resposta');
+    }
   },
 
   forwardEmail(email) {
-    console.log('Encaminhando email:', email);
-    this.openComposeModal({
-      to: '',
-      subject: `Fwd: ${email.subject}`,
-      message: `\n\n--- Email Encaminhado ---\nDe: ${email.sender}\nData: ${email.time}\nAssunto: ${email.subject}\n\n${email.content || email.preview}\n\n--- Mensagem de Encaminhamento ---\n`,
-      isForward: true
-    });
+    console.log('=== FORWARD EMAIL INICIADO ===');
+    console.log('Email para encaminhar:', email);
+    
+    try {
+      this.openComposeModal({
+        to: '',
+        subject: `Fwd: ${email.subject}`,
+        message: `\n\n--- Email Encaminhado ---\nDe: ${email.sender}\nData: ${email.time}\nAssunto: ${email.subject}\n\n${email.content || email.preview}\n\n--- Mensagem de Encaminhamento ---\n`,
+        isForward: true
+      });
+      console.log('Modal de encaminhamento aberto com sucesso');
+    } catch (error) {
+      console.error('Erro ao abrir modal de encaminhamento:', error);
+      showError('Erro', 'Não foi possível abrir o modal de encaminhamento');
+    }
   },
 
   async refreshEmails() {
