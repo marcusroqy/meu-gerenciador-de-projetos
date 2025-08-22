@@ -7,6 +7,42 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeProjectId = null;
   let user = {name:"Usuário", avatar:""};
 
+  // ---- MOBILE MENU FUNCTIONALITY ----
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const sidebar = document.querySelector('.projects-sidebar');
+  const overlay = document.createElement('div');
+  overlay.className = 'mobile-overlay';
+  document.body.appendChild(overlay);
+
+  function toggleMobileMenu() {
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('active');
+    
+    if (sidebar.classList.contains('mobile-open')) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+
+  function closeMobileMenu() {
+    sidebar.classList.remove('mobile-open');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+  overlay.addEventListener('click', closeMobileMenu);
+
+  // Fechar menu ao clicar em um item de navegação (mobile)
+  document.querySelectorAll('.main-nav a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        closeMobileMenu();
+      }
+    });
+  });
+
   // ---- THEME BUTTON (Lua/Sol) ----
   const themeBtn = document.getElementById("theme-toggle-btn");
   const themeIcon = document.getElementById("theme-icon");
@@ -303,6 +339,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('projects-cascade').classList.toggle('view-hidden');
     document.getElementById('arrow-projects').classList.toggle('opened');
   };
+
+  // ---- Responsividade ----
+  function handleResize() {
+    if (window.innerWidth > 768) {
+      closeMobileMenu();
+    }
+  }
+
+  window.addEventListener('resize', handleResize);
 
   async function loadData(){
     const { data: { session } } = await supabase.auth.getSession();

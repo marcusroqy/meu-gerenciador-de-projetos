@@ -11,6 +11,9 @@
 </head>
 <body>
   <header class="app-header">
+    <button class="mobile-menu-btn" id="mobile-menu-btn" title="Menu">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
     <span class="header-title">Gerenciador de Projetos</span>
     <button id="theme-toggle-btn" title="Trocar tema">
       <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
@@ -85,13 +88,22 @@
           <h1 id="current-project-title">Primeiro Projeto</h1>
           <p id="task-counter">1 tarefa pendente.</p>
           <form id="task-form">
-            <input type="text" id="task-input" placeholder="Nova tarefa..." />
-            <input type="date" id="task-due-date" />
-            <select id="task-priority">
-              <option value="Baixa">Baixa</option>
-              <option value="Média" selected>Média</option>
-              <option value="Alta">Alta</option>
-            </select>
+            <div class="form-group">
+              <label for="task-input">Nova tarefa:</label>
+              <input type="text" id="task-input" placeholder="Nova tarefa..." />
+            </div>
+            <div class="form-group">
+              <label for="task-due-date">Data de vencimento:</label>
+              <input type="date" id="task-due-date" />
+            </div>
+            <div class="form-group">
+              <label for="task-priority">Prioridade:</label>
+              <select id="task-priority">
+                <option value="Baixa">Baixa</option>
+                <option value="Média" selected>Média</option>
+                <option value="Alta">Alta</option>
+              </select>
+            </div>
             <button type="submit" class="add-btn">Adicionar</button>
           </form>
           <div id="kanban-board"></div>
