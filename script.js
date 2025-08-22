@@ -365,3 +365,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadData();
 });
+
+// ---- TOUCH GESTURES ----
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+
+function handleTouchStart(e) {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}
+
+function handleTouchEnd(e) {
+  touchEndX = e.changedTouches[0].screenX;
+  touchEndY = e.changedTouches[0].screenY;
+  handleSwipe();
+}
+
+function handleSwipe() {
+  const swipeThreshold = 50; // Mínimo de pixels para considerar um swipe
+  const diffX = touchStartX - touchEndX;
+  const diffY = touchStartY - touchEndY;
+  
+  // Verifica se é um swipe horizontal (mais horizontal que vertical)
+  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
+    if (diffX > 0) {
+      // Swipe para esquerda - Abre menu mobile
+      if (window.innerWidth <= 768 && !sidebar.classList.contains('mobile-open')) {
+        toggleMobileMenu();
+      }
+    } else {
+      // Swipe para direita - Fecha menu mobile
+      if (window.innerWidth <= 768 && sidebar.classList.contains('mobile-open')) {
+        closeMobileMenu();
+      }
+    }
+  }
+}
+
+// Adiciona listeners de touch para swipe
+document.addEventListener('touchstart', handleTouchStart, false);
+document.addEventListener('touchend', handleTouchEnd, false);
+
+// ---- MELHORIAS DE TOUCH ----
+// Previne zoom em inputs em dispositivos móveis
+document.addEventListener('touchstart', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+    e.target.style.fontSize = '16px';
+  }
+}, { passive: true });
+
+// Melhora feedback visual para touch
+document.addEventListener('touchstart', function(e) {
+  if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+    e.target.style.transform = 'scale(0.95)';
+  }
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+  if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+    e.target.style.transform = 'scale(1)';
+  }
+}, { passive: true });

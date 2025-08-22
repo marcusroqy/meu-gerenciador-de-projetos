@@ -1339,3 +1339,958 @@ body.dark-mode .vencimento-label.futuro {
   background: #dbeafe;
   color: #1e40af;
 }
+
+/* ==== TOUCH GESTURES & PWA ==== */
+
+/* Melhorias para touch */
+.touch-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.touch-feedback:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+/* Previne seleção de texto em elementos touch */
+.touch-feedback {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Melhor feedback para botões touch */
+button.touch-feedback,
+.touch-feedback button {
+  position: relative;
+  overflow: hidden;
+}
+
+button.touch-feedback::after,
+.touch-feedback button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+button.touch-feedback:active::after,
+.touch-feedback button:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Melhorias para swipe */
+.swipeable {
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.swipeable.swiping {
+  transition: none;
+}
+
+/* Indicadores de swipe */
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 40px;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.swipe-indicator.left {
+  left: 10px;
+}
+
+.swipe-indicator.right {
+  right: 10px;
+}
+
+.swipe-indicator.show {
+  opacity: 1;
+}
+
+/* Melhorias para PWA */
+.pwa-features {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.pwa-features h3 {
+  color: var(--accent-primary);
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.pwa-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pwa-features li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.pwa-features li:last-child {
+  border-bottom: none;
+}
+
+/* Melhorias para PWA offline */
+.offline-mode {
+  background: var(--bg-hover);
+  border: 1px solid var(--accent-danger);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+  text-align: center;
+}
+
+.offline-mode .icon {
+  color: var(--accent-danger);
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.offline-mode .title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.offline-mode .description {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Melhorias para PWA install */
+.pwa-install-hint {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--accent-primary);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  display: none;
+}
+
+.pwa-install-hint.show {
+  display: block;
+  animation: slideInRight 0.3s ease;
+}
+
+.pwa-install-hint:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Melhorias para PWA splash */
+.pwa-splash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease;
+}
+
+.pwa-splash.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pwa-splash .logo {
+  width: 120px;
+  height: 120px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  color: white;
+  margin-bottom: 30px;
+  animation: pulse 2s infinite;
+}
+
+.pwa-splash .title {
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.pwa-splash .subtitle {
+  color: rgba(255,255,255,0.8);
+  font-size: 16px;
+  text-align: center;
+}
+
+.pwa-splash .loading {
+  margin-top: 30px;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Melhorias para PWA install banner */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-content);
+  border-top: 1px solid var(--border-color);
+  padding: 16px;
+  display: none;
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+.pwa-install-banner.show {
+  display: block;
+  animation: slideUp 0.3s ease;
+}
+
+.pwa-install-banner .content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.pwa-install-banner .text {
+  flex: 1;
+  margin-right: 16px;
+}
+
+.pwa-install-banner .title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.pwa-install-banner .description {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.pwa-install-banner .actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pwa-install-banner button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pwa-install-banner .install-btn {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.pwa-install-banner .install-btn:hover {
+  background: var(--accent-secondary);
+}
+
+.pwa-install-banner .dismiss-btn {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.pwa-install-banner .dismiss-btn:hover {
+  background: var(--border-color);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Melhorias para PWA offline indicator */
+.offline-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #ef4444;
+  color: white;
+  text-align: center;
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1001;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+}
+
+.offline-indicator.show {
+  transform: translateY(0);
+}
+
+/* Melhorias para PWA em mobile */
+@media (max-width: 768px) {
+  .pwa-install-banner {
+    padding: 12px;
+  }
+  
+  .pwa-install-banner .content {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .pwa-install-banner .text {
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+  
+  .pwa-install-banner .actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .pwa-install-banner button {
+    flex: 1;
+    max-width: 120px;
+  }
+  
+  .pwa-splash .logo {
+    width: 100px;
+    height: 100px;
+    font-size: 50px;
+  }
+  
+  .pwa-splash .title {
+    font-size: 24px;
+  }
+  
+  .pwa-splash .subtitle {
+    font-size: 14px;
+  }
+}
+
+/* Melhorias para PWA em tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .pwa-install-banner .content {
+    max-width: 500px;
+  }
+  
+  .pwa-splash .logo {
+    width: 110px;
+    height: 110px;
+    font-size: 55px;
+  }
+}
+
+/* Melhorias para PWA em desktop */
+@media (min-width: 1025px) {
+  .pwa-install-banner .content {
+    max-width: 600px;
+  }
+  
+  .pwa-install-banner .actions {
+    gap: 12px;
+  }
+  
+  .pwa-install-banner button {
+    padding: 10px 20px;
+    font-size: 15px;
+  }
+}
+
+/* Melhorias para touch em dispositivos específicos */
+@media (hover: none) and (pointer: coarse) {
+  /* Dispositivos touch */
+  .touch-feedback:hover {
+    transform: none;
+  }
+  
+  .touch-feedback:active {
+    transform: scale(0.95);
+  }
+  
+  /* Melhor espaçamento para touch */
+  button, .btn, .action-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Melhor feedback visual para touch */
+  .task-card:active,
+  .dashboard-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+}
+
+/* Melhorias para PWA performance */
+.pwa-optimized {
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Melhorias para PWA acessibilidade */
+.pwa-install-banner:focus-within {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.pwa-install-banner button:focus {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* Melhorias para PWA dark mode */
+body.dark-mode .pwa-install-banner {
+  background: var(--bg-sidebar);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .pwa-install-banner .dismiss-btn {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+body.dark-mode .pwa-install-banner .dismiss-btn:hover {
+  background: var(--border-color);
+}
+
+/* Melhorias para PWA animações */
+.pwa-animate {
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Melhorias para PWA loading states */
+.pwa-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.pwa-loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Melhorias para PWA gestures */
+.gesture-area {
+  touch-action: pan-x pan-y;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.gesture-area.gesturing {
+  transition: none;
+}
+
+/* Melhorias para PWA feedback */
+.pwa-feedback {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-primary);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pwa-feedback.show {
+  opacity: 1;
+}
+
+/* Melhorias para PWA status */
+.pwa-status {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: var(--bg-content);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pwa-status.show {
+  opacity: 1;
+}
+
+.pwa-status.online {
+  border-color: var(--accent-done);
+  color: var(--accent-done);
+}
+
+.pwa-status.offline {
+  border-color: var(--accent-danger);
+  color: var(--accent-danger);
+}
+
+/* Melhorias para PWA cache */
+.pwa-cache-info {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.pwa-cache-info .title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.pwa-cache-info .description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.pwa-cache-info .actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pwa-cache-info button {
+  padding: 6px 12px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-content);
+  color: var(--text-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pwa-cache-info button:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+}
+
+/* Melhorias para PWA notifications */
+.pwa-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--bg-content);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  max-width: 300px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+.pwa-notification.show {
+  transform: translateX(0);
+}
+
+.pwa-notification .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.pwa-notification .title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.pwa-notification .close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.pwa-notification .close:hover {
+  background: var(--bg-hover);
+}
+
+.pwa-notification .message {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Melhorias para PWA em diferentes orientações */
+@media (orientation: landscape) and (max-height: 500px) {
+  .pwa-install-banner {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: auto;
+    width: 300px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .pwa-install-banner .content {
+    flex-direction: row;
+    text-align: left;
+  }
+  
+  .pwa-install-banner .text {
+    margin-right: 16px;
+    margin-bottom: 0;
+  }
+}
+
+/* Melhorias para PWA em dispositivos de alta densidade */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .pwa-splash .logo {
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  
+  .pwa-install-banner {
+    border-width: 0.5px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com notch */
+@supports (padding: max(0px)) {
+  .pwa-install-banner {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  
+  .offline-indicator {
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela curva */
+@media (min-width: 768px) {
+  .pwa-install-banner {
+    border-radius: 12px;
+    margin: 10px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com teclado virtual */
+@media (max-height: 400px) {
+  .pwa-splash {
+    padding: 20px;
+  }
+  
+  .pwa-splash .logo {
+    width: 80px;
+    height: 80px;
+    font-size: 40px;
+    margin-bottom: 20px;
+  }
+  
+  .pwa-splash .title {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  
+  .pwa-splash .subtitle {
+    font-size: 14px;
+  }
+  
+  .pwa-splash .loading {
+    width: 30px;
+    height: 30px;
+    margin-top: 20px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela pequena */
+@media (max-width: 320px) {
+  .pwa-install-banner .content {
+    padding: 0 8px;
+  }
+  
+  .pwa-install-banner .title {
+    font-size: 13px;
+  }
+  
+  .pwa-install-banner .description {
+    font-size: 12px;
+  }
+  
+  .pwa-install-banner button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela grande */
+@media (min-width: 1200px) {
+  .pwa-install-banner .content {
+    max-width: 700px;
+  }
+  
+  .pwa-install-banner .text {
+    margin-right: 24px;
+  }
+  
+  .pwa-install-banner button {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela muito grande */
+@media (min-width: 1600px) {
+  .pwa-install-banner .content {
+    max-width: 800px;
+  }
+  
+  .pwa-install-banner {
+    padding: 20px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela ultra-wide */
+@media (min-width: 2000px) {
+  .pwa-install-banner .content {
+    max-width: 900px;
+  }
+  
+  .pwa-install-banner {
+    padding: 24px;
+  }
+  
+  .pwa-install-banner .title {
+    font-size: 18px;
+  }
+  
+  .pwa-install-banner .description {
+    font-size: 16px;
+  }
+  
+  .pwa-install-banner button {
+    padding: 14px 28px;
+    font-size: 18px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de alta resolução */
+@media (-webkit-min-device-pixel-ratio: 3), (min-resolution: 288dpi) {
+  .pwa-splash .logo {
+    border-width: 3px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 1px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de baixa resolução */
+@media (-webkit-max-device-pixel-ratio: 1), (max-resolution: 96dpi) {
+  .pwa-splash .logo {
+    border-width: 1px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 2px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de resolução média */
+@media (-webkit-min-device-pixel-ratio: 1.5) and (-webkit-max-device-pixel-ratio: 2), 
+       (min-resolution: 144dpi) and (max-resolution: 191dpi) {
+  .pwa-splash .logo {
+    border-width: 1.5px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 1px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de resolução muito alta */
+@media (-webkit-min-device-pixel-ratio: 4), (min-resolution: 384dpi) {
+  .pwa-splash .logo {
+    border-width: 4px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 0.5px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de resolução ultra alta */
+@media (-webkit-min-device-pixel-ratio: 5), (min-resolution: 480dpi) {
+  .pwa-splash .logo {
+    border-width: 5px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 0.25px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de resolução extrema */
+@media (-webkit-min-device-pixel-ratio: 6), (min-resolution: 576dpi) {
+  .pwa-splash .logo {
+    border-width: 6px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 0.2px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de resolução máxima */
+@media (-webkit-min-device-pixel-ratio: 7), (min-resolution: 672dpi) {
+  .pwa-splash .logo {
+    border-width: 7px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 0.15px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de resolução mínima */
+@media (-webkit-max-device-pixel-ratio: 0.75), (max-resolution: 72dpi) {
+  .pwa-splash .logo {
+    border-width: 2px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 3px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de resolução muito baixa */
+@media (-webkit-max-device-pixel-ratio: 0.5), (max-resolution: 48dpi) {
+  .pwa-splash .logo {
+    border-width: 3px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 4px;
+  }
+}
+
+/* Melhorias para PWA em dispositivos com tela de resolução extremamente baixa */
+@media (-webkit-max-device-pixel-ratio: 0.25), (max-resolution: 24dpi) {
+  .pwa-splash .logo {
+    border-width: 4px;
+  }
+  
+  .pwa-install-banner {
+    border-width: 5px;
+  }
+}
+
+/* ==== FIM DO ARQUIVO CSS ==== */
