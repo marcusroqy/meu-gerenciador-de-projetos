@@ -153,6 +153,77 @@
         update();
       });
     })();
+
+    // ===== SISTEMA DE TOASTS PARA LOGIN =====
+    function createToastContainer() {
+      let container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+      }
+      return container;
+    }
+
+    function showToast(type, title, message, duration = 4000) {
+      const container = createToastContainer();
+      
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const icons = {
+        success: 'check_circle',
+        error: 'error',
+        warning: 'warning',
+        info: 'info'
+      };
+      
+      toast.innerHTML = `
+        <span class="toast-icon material-symbols-outlined">${icons[type] || 'info'}</span>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Anima entrada
+      setTimeout(() => toast.classList.add('show'), 100);
+      
+      // Auto remove
+      const autoRemove = setTimeout(() => removeToast(toast), duration);
+      
+      // Botão de fechar
+      toast.querySelector('.toast-close').onclick = () => {
+        clearTimeout(autoRemove);
+        removeToast(toast);
+      };
+    }
+
+    function removeToast(toast) {
+      toast.classList.remove('show');
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+      }, 300);
+    }
+
+    function setButtonLoading(button, loading = true) {
+      if (loading) {
+        button.classList.add('btn-loading');
+        button.disabled = true;
+      } else {
+        button.classList.remove('btn-loading');
+        button.disabled = false;
+      }
+    }
+
     // Redireciona para app se já estiver logado
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
       if (session) window.location.href = 'index.html';
@@ -163,29 +234,64 @@
       e.preventDefault();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) { alert(error.message); return; }
-      window.location.href = 'index.html';
+      
+      if (!email || !password) {
+        showToast('error', 'Campos Obrigatórios', 'Por favor, informe email e senha.');
+        return;
+      }
+      
+      const submitBtn = this.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true);
+      
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        
+        showToast('success', 'Login Realizado', 'Redirecionando para o sistema...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      } catch (error) {
+        showToast('error', 'Erro no Login', error.message || 'Credenciais inválidas. Tente novamente.');
+        setButtonLoading(submitBtn, false);
+      }
     };
     // Criar conta (sign up) usando os mesmos campos
     document.getElementById('signup-btn').onclick = async function(){
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-      if(!email || !password){ alert('Informe email e senha.'); return; }
-      const { data, error } = await supabaseClient.auth.signUp({ email, password });
-      if(error){ alert(error.message); return; }
-      if(data.session){
-        // projeto sem confirmação de email -> já logado
-        window.location.href = 'index.html';
-      } else {
-        alert('Cadastro criado! Verifique seu email para confirmar e depois faça login.');
+      
+      if(!email || !password){ 
+        showToast('error', 'Campos Obrigatórios', 'Por favor, informe email e senha para criar a conta.'); 
+        return; 
+      }
+      
+      setButtonLoading(this, true);
+      
+      try {
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        if(error) throw error;
+        
+        if(data.session){
+          // projeto sem confirmação de email -> já logado
+          showToast('success', 'Conta Criada', 'Redirecionando para o sistema...');
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1000);
+        } else {
+          showToast('success', 'Conta Criada', 'Verifique seu email para confirmar e depois faça login.');
+        }
+      } catch (error) {
+        showToast('error', 'Erro no Cadastro', error.message || 'Não foi possível criar a conta. Tente novamente.');
+      } finally {
+        setButtonLoading(this, false);
       }
     };
 
     // Acesso demo: apenas informativo por enquanto
     document.getElementById('demo-access').onclick = function(e){
       e.preventDefault();
-      alert('Crie uma conta no Supabase (Auth > Users) para acessar com email/senha.');
+      showToast('info', 'Acesso Demo', 'Crie uma conta no Supabase (Auth > Users) para acessar com email/senha.');
     };
   </script>
 </body>

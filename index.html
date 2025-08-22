@@ -58,6 +58,12 @@
               <span>Dashboard</span>
             </a>
           </li>
+          <li class="nav-item nav-email">
+            <a href="#" data-view="email">
+              <span class="icon material-symbols-outlined">mail</span>
+              <span>Email</span>
+            </a>
+          </li>
           <li class="nav-item nav-settings">
             <a href="#" data-view="settings">
               <span class="icon material-symbols-outlined">settings</span>
@@ -143,6 +149,110 @@
         </div>
       </section>
 
+      <!-- Email -->
+      <section id="view-email" class="main-view view-hidden">
+        <div class="container">
+          <div class="email-header">
+            <h1>📧 Caixa de Entrada</h1>
+            <div class="email-actions">
+              <button id="connect-gmail-btn" class="email-action-btn" style="background: #ea4335;">
+                <span class="material-symbols-outlined">link</span>
+                Conectar Gmail
+              </button>
+              <button id="compose-email-btn" class="email-action-btn" style="display: none;">
+                <span class="material-symbols-outlined">edit</span>
+                Novo Email
+              </button>
+              <button id="refresh-emails-btn" class="email-action-btn" style="display: none;">
+                <span class="material-symbols-outlined">refresh</span>
+                Atualizar
+              </button>
+              <button id="disconnect-gmail-btn" class="email-action-btn" style="display: none; background: #dc2626;">
+                <span class="material-symbols-outlined">link_off</span>
+                Desconectar
+              </button>
+            </div>
+          </div>
+          
+          <div id="email-connection-status" class="email-connection-status" style="display: none;">
+            <div class="connection-info">
+              <span class="material-symbols-outlined">account_circle</span>
+              <div>
+                <strong id="connected-email">email@gmail.com</strong>
+                <span>Conectado ao Gmail</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="email-stats">
+            <div class="email-stat-card">
+              <span class="material-symbols-outlined">inbox</span>
+              <div>
+                <strong id="inbox-count">12</strong>
+                <span>Não lidas</span>
+              </div>
+            </div>
+            <div class="email-stat-card">
+              <span class="material-symbols-outlined">send</span>
+              <div>
+                <strong id="sent-count">45</strong>
+                <span>Enviados</span>
+              </div>
+            </div>
+            <div class="email-stat-card">
+              <span class="material-symbols-outlined">star</span>
+              <div>
+                <strong id="starred-count">8</strong>
+                <span>Favoritos</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="email-container">
+            <div class="email-sidebar">
+              <div class="email-folders">
+                <div class="email-folder active" data-folder="inbox">
+                  <span class="material-symbols-outlined">inbox</span>
+                  <span>Caixa de Entrada</span>
+                  <span class="folder-count">12</span>
+                </div>
+                <div class="email-folder" data-folder="sent">
+                  <span class="material-symbols-outlined">send</span>
+                  <span>Enviados</span>
+                </div>
+                <div class="email-folder" data-folder="starred">
+                  <span class="material-symbols-outlined">star</span>
+                  <span>Favoritos</span>
+                  <span class="folder-count">8</span>
+                </div>
+                <div class="email-folder" data-folder="drafts">
+                  <span class="material-symbols-outlined">draft</span>
+                  <span>Rascunhos</span>
+                  <span class="folder-count">3</span>
+                </div>
+                <div class="email-folder" data-folder="trash">
+                  <span class="material-symbols-outlined">delete</span>
+                  <span>Lixeira</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="email-content">
+              <div class="email-search">
+                <div class="search-container">
+                  <span class="material-symbols-outlined">search</span>
+                  <input type="text" placeholder="Buscar emails..." id="email-search-input">
+                </div>
+              </div>
+
+              <div class="email-list" id="email-list">
+                <!-- Lista de emails será populada aqui -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Configurações -->
       <section id="view-settings" class="main-view view-hidden">
         <div class="container settings-container">
@@ -176,6 +286,11 @@
   </div>
 
   <div id="notification-container"></div>
+  
+  <!-- Gmail API SDK -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
+  
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>

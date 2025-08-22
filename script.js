@@ -117,13 +117,25 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const name = document.getElementById('project-input').value.trim();
     if(!name || !currentUser) return;
-    const { data, error } = await supabase.from('projects').insert({ name, user_id: currentUser.id }).select().single();
-    if(error){ alert('Erro ao criar projeto'); return; }
-    projects.unshift(data);
-    activeProjectId = data.id;
-    renderProjects();
-    selectProject(data.id);
-    document.getElementById('project-input').value="";
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn, true);
+    
+    try {
+      const { data, error } = await supabase.from('projects').insert({ name, user_id: currentUser.id }).select().single();
+      if(error) throw error;
+      
+      projects.unshift(data);
+      activeProjectId = data.id;
+      renderProjects();
+      selectProject(data.id);
+      document.getElementById('project-input').value="";
+      showSuccess('Projeto Criado', `O projeto "${name}" foi criado com sucesso!`);
+    } catch (error) {
+      showError('Erro', 'Não foi possível criar o projeto. Tente novamente.');
+    } finally {
+      setButtonLoading(submitBtn, false);
+    }
   };
 
   // ---- Utils ----
@@ -207,12 +219,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---- Deletar tarefa ----
   window.deleteTask = async function(id) {
-    if(confirm('Tem certeza que deseja deletar esta tarefa?')) {
-      await supabase.from('tasks').delete().eq('id', id);
-      tasks = tasks.filter(t => t.id !== id);
-      renderTasks();
-      if(typeof renderDashboard === "function") renderDashboard();
-    }
+    showConfirm(
+      'Excluir Tarefa',
+      'Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.',
+      async () => {
+        await supabase.from('tasks').delete().eq('id', id);
+        tasks = tasks.filter(t => t.id !== id);
+        renderTasks();
+        if(typeof renderDashboard === "function") renderDashboard();
+        showSuccess('Sucesso', 'Tarefa excluída com sucesso!');
+      }
+    );
   }
 
   // ---- Adicionar tarefa ----
@@ -222,14 +239,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const priority = document.getElementById('task-priority').value;
     const dueDate = document.getElementById('task-due-date').value;
     if(!text||!activeProjectId||!currentUser) return;
-    const payload = { user_id: currentUser.id, project_id: activeProjectId, text, status:'A Fazer', priority, comments:[], due_date: dueDate||null, desc: "" };
-    const { data, error } = await supabase.from('tasks').insert(payload).select().single();
-    if(error){ alert('Erro ao criar tarefa'); return; }
-    tasks.push({ id:data.id, projectId:data.project_id, text:data.text, status:data.status, priority:data.priority, comments:data.comments||[], createdAt:data.created_at, dueDate:data.due_date||"", desc:data.desc||"" });
-    document.getElementById('task-input').value="";
-    document.getElementById('task-due-date').value="";
-    renderTasks();
-    if(typeof renderDashboard === "function") renderDashboard();
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn, true);
+    
+    try {
+      const payload = { user_id: currentUser.id, project_id: activeProjectId, text, status:'A Fazer', priority, comments:[], due_date: dueDate||null, desc: "" };
+      const { data, error } = await supabase.from('tasks').insert(payload).select().single();
+      if(error) throw error;
+      
+      tasks.push({ id:data.id, projectId:data.project_id, text:data.text, status:data.status, priority:data.priority, comments:data.comments||[], createdAt:data.created_at, dueDate:data.due_date||"", desc:data.desc||"" });
+      document.getElementById('task-input').value="";
+      document.getElementById('task-due-date').value="";
+      renderTasks();
+      if(typeof renderDashboard === "function") renderDashboard();
+      showSuccess('Tarefa Criada', `A tarefa "${text}" foi adicionada com sucesso!`);
+    } catch (error) {
+      showError('Erro', 'Não foi possível criar a tarefa. Tente novamente.');
+    } finally {
+      setButtonLoading(submitBtn, false);
+    }
   };
 
   // ---- Editar tarefa + comentários + info criação NO MODAL ----
@@ -344,12 +373,20 @@ document.addEventListener('DOMContentLoaded', () => {
   updateUserForm();
   document.getElementById('user-settings-form').onsubmit = function(e){
     e.preventDefault();
-    user.name = document.getElementById('profile-name').value || "Usuário";
-    user.avatar = document.getElementById("profile-avatar-img").getAttribute("src") || "";
-    saveUserToStorage(); // Salva os dados no localStorage
-    updateUserHeader();
-    document.querySelectorAll('.main-view').forEach(v=>v.classList.add('view-hidden'));
-    document.getElementById('view-home').classList.remove('view-hidden');
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn, true);
+    
+    setTimeout(() => {
+      user.name = document.getElementById('profile-name').value || "Usuário";
+      user.avatar = document.getElementById("profile-avatar-img").getAttribute("src") || "";
+      saveUserToStorage(); // Salva os dados no localStorage
+      updateUserHeader();
+      document.querySelectorAll('.main-view').forEach(v=>v.classList.add('view-hidden'));
+      document.getElementById('view-home').classList.remove('view-hidden');
+      setButtonLoading(submitBtn, false);
+      showSuccess('Configurações Salvas', 'Suas informações foram atualizadas com sucesso!');
+    }, 500); // Simula um pequeno delay para mostrar o loading
   };
   document.getElementById('profile-avatar-input').onchange = function(e){
     let file = this.files[0];
@@ -439,6 +476,808 @@ function handleSwipe() {
 // Adiciona listeners de touch para swipe
 document.addEventListener('touchstart', handleTouchStart, false);
 document.addEventListener('touchend', handleTouchEnd, false);
+
+// ===== SISTEMA DE NOTIFICAÇÕES UX MELHORADO =====
+function createToastContainer() {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+  return container;
+}
+
+function showToast(type, title, message, duration = 4000) {
+  const container = createToastContainer();
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  const icons = {
+    success: 'check_circle',
+    error: 'error',
+    warning: 'warning',
+    info: 'info'
+  };
+  
+  toast.innerHTML = `
+    <span class="toast-icon material-symbols-outlined">${icons[type] || 'info'}</span>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-message">${message}</div>
+    </div>
+    <button class="toast-close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Anima entrada
+  setTimeout(() => toast.classList.add('show'), 100);
+  
+  // Auto remove
+  const autoRemove = setTimeout(() => removeToast(toast), duration);
+  
+  // Botão de fechar
+  toast.querySelector('.toast-close').onclick = () => {
+    clearTimeout(autoRemove);
+    removeToast(toast);
+  };
+}
+
+function removeToast(toast) {
+  toast.classList.remove('show');
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.parentNode.removeChild(toast);
+    }
+  }, 300);
+}
+
+// Funções de conveniência
+window.showSuccess = (title, message) => showToast('success', title, message);
+window.showError = (title, message) => showToast('error', title, message);
+window.showWarning = (title, message) => showToast('warning', title, message);
+window.showInfo = (title, message) => showToast('info', title, message);
+
+// Confirmação elegante
+function showConfirm(title, message, onConfirm, onCancel) {
+  const dialog = document.createElement('div');
+  dialog.className = 'confirm-dialog';
+  dialog.innerHTML = `
+    <div class="confirm-content">
+      <div class="confirm-title">${title}</div>
+      <div class="confirm-message">${message}</div>
+      <div class="confirm-actions">
+        <button class="confirm-btn confirm-no">Cancelar</button>
+        <button class="confirm-btn confirm-yes">Confirmar</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(dialog);
+  setTimeout(() => dialog.classList.add('show'), 10);
+  
+  const remove = () => {
+    dialog.classList.remove('show');
+    setTimeout(() => {
+      if (dialog.parentNode) {
+        dialog.parentNode.removeChild(dialog);
+      }
+    }, 200);
+  };
+  
+  dialog.querySelector('.confirm-yes').onclick = () => {
+    remove();
+    if (onConfirm) onConfirm();
+  };
+  
+  dialog.querySelector('.confirm-no').onclick = () => {
+    remove();
+    if (onCancel) onCancel();
+  };
+  
+  dialog.onclick = (e) => {
+    if (e.target === dialog) {
+      remove();
+      if (onCancel) onCancel();
+    }
+  };
+}
+
+window.showConfirm = showConfirm;
+
+// Loading states para botões
+function setButtonLoading(button, loading = true) {
+  if (loading) {
+    button.classList.add('btn-loading');
+    button.disabled = true;
+  } else {
+    button.classList.remove('btn-loading');
+    button.disabled = false;
+  }
+}
+
+// ===== SISTEMA DE EMAIL COM GMAIL API =====
+const gmailConfig = {
+  clientId: '263415738404-9cuie17gn2ulcea14co2gfa58d273eb5.apps.googleusercontent.com',
+  apiKey: 'AIzaSyAzcBQ4WhkoAzC5BFmx659Xxpip5SKdZ5k',
+  discoveryDoc: 'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest',
+  scopes: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send'
+};
+
+const emailSystem = {
+  currentFolder: 'inbox',
+  isConnected: false,
+  accessToken: null,
+  userEmail: null,
+  emails: [
+    {
+      id: 1,
+      sender: 'João Silva',
+      senderEmail: 'joao@empresa.com',
+      subject: 'Reunião de Projeto - Amanhã 14h',
+      preview: 'Olá! Gostaria de confirmar nossa reunião para discutir o andamento do projeto...',
+      content: `
+        <p>Olá!</p>
+        <p>Gostaria de confirmar nossa reunião para discutir o andamento do projeto. Seguem os pontos principais:</p>
+        <ul>
+          <li>Revisão do cronograma</li>
+          <li>Definição de próximas etapas</li>
+          <li>Discussão sobre recursos necessários</li>
+        </ul>
+        <p>Por favor, confirme sua presença.</p>
+        <p>Atenciosamente,<br>João Silva</p>
+      `,
+      time: 'há 2 horas',
+      timestamp: Date.now() - 2 * 60 * 60 * 1000,
+      isRead: false,
+      isStarred: false,
+      folder: 'inbox'
+    },
+    {
+      id: 2,
+      sender: 'Maria Costa',
+      senderEmail: 'maria@cliente.com',
+      subject: 'Feedback sobre proposta',
+      preview: 'Boa tarde! Revisei a proposta enviada e gostaria de fazer alguns comentários...',
+      content: `
+        <p>Boa tarde!</p>
+        <p>Revisei a proposta enviada e gostaria de fazer alguns comentários:</p>
+        <p>1. O prazo está adequado para nossas necessidades<br>
+        2. Os valores estão dentro do orçamento previsto<br>
+        3. Gostaríamos de incluir mais uma funcionalidade</p>
+        <p>Podemos agendar uma conversa para discutir os detalhes?</p>
+        <p>Obrigada!</p>
+      `,
+      time: 'há 5 horas',
+      timestamp: Date.now() - 5 * 60 * 60 * 1000,
+      isRead: true,
+      isStarred: true,
+      folder: 'inbox'
+    },
+    {
+      id: 3,
+      sender: 'Carlos Mendes',
+      senderEmail: 'carlos@fornecedor.com',
+      subject: 'Atualização de preços - 2024',
+      preview: 'Informamos que nossos preços foram atualizados para o próximo ano...',
+      content: `
+        <p>Prezados,</p>
+        <p>Informamos que nossos preços foram atualizados para o próximo ano.</p>
+        <p>Segue em anexo a nova tabela de preços que entra em vigor a partir de janeiro de 2024.</p>
+        <p>Qualquer dúvida, estamos à disposição.</p>
+        <p>Atenciosamente,<br>Carlos Mendes</p>
+      `,
+      time: 'ontem',
+      timestamp: Date.now() - 24 * 60 * 60 * 1000,
+      isRead: true,
+      isStarred: false,
+      folder: 'inbox'
+    },
+    {
+      id: 4,
+      sender: 'Ana Oliveira',
+      senderEmail: 'ana@empresa.com',
+      subject: 'Relatório mensal finalizado',
+      preview: 'O relatório mensal foi finalizado e está disponível para download...',
+      content: `
+        <p>Equipe,</p>
+        <p>O relatório mensal foi finalizado e está disponível para download no sistema.</p>
+        <p>Principais destaques:</p>
+        <ul>
+          <li>Crescimento de 15% em relação ao mês anterior</li>
+          <li>3 novos clientes adquiridos</li>
+          <li>Taxa de satisfação de 98%</li>
+        </ul>
+        <p>Parabéns pelo excelente trabalho!</p>
+      `,
+      time: '2 dias',
+      timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
+      isRead: false,
+      isStarred: true,
+      folder: 'inbox'
+    }
+  ],
+
+  async init() {
+    this.checkConnection();
+    if (this.isConnected) {
+      await this.loadGmailEmails();
+    } else {
+      this.showDisconnectedState();
+    }
+    this.bindEvents();
+    this.updateStats();
+  },
+
+  checkConnection() {
+    const savedToken = localStorage.getItem('gmail_access_token');
+    const savedEmail = localStorage.getItem('gmail_user_email');
+    
+    if (savedToken && savedEmail) {
+      this.accessToken = savedToken;
+      this.userEmail = savedEmail;
+      this.isConnected = true;
+      this.showConnectedState();
+    }
+  },
+
+  showConnectedState() {
+    document.getElementById('connect-gmail-btn').style.display = 'none';
+    document.getElementById('compose-email-btn').style.display = 'flex';
+    document.getElementById('refresh-emails-btn').style.display = 'flex';
+    document.getElementById('disconnect-gmail-btn').style.display = 'flex';
+    document.getElementById('email-connection-status').style.display = 'flex';
+    document.getElementById('connected-email').textContent = this.userEmail;
+  },
+
+  showDisconnectedState() {
+    document.getElementById('connect-gmail-btn').style.display = 'flex';
+    document.getElementById('compose-email-btn').style.display = 'none';
+    document.getElementById('refresh-emails-btn').style.display = 'none';
+    document.getElementById('disconnect-gmail-btn').style.display = 'none';
+    document.getElementById('email-connection-status').style.display = 'none';
+    
+    const emailList = document.getElementById('email-list');
+    emailList.innerHTML = `
+      <div class="email-disconnected-state">
+        <span class="material-symbols-outlined">link_off</span>
+        <h3>Conecte sua conta Gmail</h3>
+        <p>Para visualizar seus emails reais, conecte sua conta do Gmail clicando no botão "Conectar Gmail" acima.</p>
+        <p><small>Seus dados ficam seguros - usamos OAuth2 do Google.</small></p>
+      </div>
+    `;
+  },
+
+  async connectGmail() {
+    try {
+      showInfo('Conectando', 'Aguarde enquanto conectamos ao Gmail...');
+      
+      // Inicializar APIs do Google
+      await this.initializeGoogleAPI();
+      
+      // Realizar autenticação OAuth2
+      await this.authenticateUser();
+      
+      showSuccess('Gmail Conectado', 'Sua conta foi conectada com sucesso!');
+      this.isConnected = true;
+      this.showConnectedState();
+      await this.loadGmailEmails();
+      
+    } catch (error) {
+      console.error('Erro ao conectar Gmail:', error);
+      showError('Erro de Conexão', 'Não foi possível conectar ao Gmail. Tente novamente.');
+    }
+  },
+
+  async initializeGoogleAPI() {
+    return new Promise((resolve, reject) => {
+      if (typeof gapi === 'undefined') {
+        reject(new Error('Google API não carregada'));
+        return;
+      }
+
+      gapi.load('auth2:client', async () => {
+        try {
+          await gapi.client.init({
+            apiKey: gmailConfig.apiKey,
+            clientId: gmailConfig.clientId,
+            discoveryDocs: [gmailConfig.discoveryDoc],
+            scope: gmailConfig.scopes
+          });
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  },
+
+  async authenticateUser() {
+    const authInstance = gapi.auth2.getAuthInstance();
+    const user = await authInstance.signIn();
+    
+    this.accessToken = user.getAuthResponse().access_token;
+    this.userEmail = user.getBasicProfile().getEmail();
+    
+    // Salvar no localStorage
+    localStorage.setItem('gmail_access_token', this.accessToken);
+    localStorage.setItem('gmail_user_email', this.userEmail);
+  },
+
+  async loadGmailEmails() {
+    try {
+      if (!this.accessToken) {
+        throw new Error('Token de acesso não disponível');
+      }
+
+      showInfo('Carregando', 'Sincronizando emails do Gmail...');
+
+      // Buscar lista de emails
+      const response = await fetch(`https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=10&labelIds=INBOX`, {
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao buscar emails');
+      }
+
+      const data = await response.json();
+      
+      if (data.messages) {
+        // Buscar detalhes de cada email
+        const emailPromises = data.messages.slice(0, 10).map(msg => this.getEmailDetails(msg.id));
+        const emailDetails = await Promise.all(emailPromises);
+        
+        this.emails = emailDetails.filter(email => email !== null);
+        this.renderEmails();
+        showSuccess('Gmail', `${this.emails.length} emails carregados com sucesso!`);
+      } else {
+        this.emails = [];
+        this.renderEmails();
+        showInfo('Gmail', 'Nenhum email encontrado na caixa de entrada.');
+      }
+
+    } catch (error) {
+      console.error('Erro ao carregar emails:', error);
+      showError('Erro', 'Não foi possível carregar os emails. Verifique sua conexão.');
+      
+      // Se token expirou, desconectar
+      if (error.message.includes('401') || error.message.includes('Token')) {
+        this.disconnectGmail();
+      }
+    }
+  },
+
+  async getEmailDetails(messageId) {
+    try {
+      const response = await fetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${messageId}`, {
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const message = await response.json();
+      
+      // Extrair dados do email
+      const headers = message.payload.headers;
+      const getHeader = (name) => {
+        const header = headers.find(h => h.name.toLowerCase() === name.toLowerCase());
+        return header ? header.value : '';
+      };
+
+      const subject = getHeader('Subject') || 'Sem assunto';
+      const from = getHeader('From');
+      const date = getHeader('Date');
+      
+      // Extrair nome e email do remetente
+      const senderMatch = from.match(/^(.*?)\s*<(.+)>$/) || from.match(/^(.+)$/);
+      const senderName = senderMatch ? (senderMatch[1] || senderMatch[0]).replace(/"/g, '').trim() : 'Desconhecido';
+      const senderEmail = senderMatch && senderMatch[2] ? senderMatch[2] : from;
+
+      // Extrair conteúdo do email
+      let content = this.extractEmailContent(message.payload);
+      const preview = this.createPreview(content);
+
+      // Verificar se foi lido
+      const isRead = !message.labelIds.includes('UNREAD');
+
+      return {
+        id: messageId,
+        sender: senderName,
+        senderEmail: senderEmail,
+        subject: subject,
+        preview: preview,
+        content: content,
+        time: this.formatDate(date),
+        timestamp: new Date(date).getTime(),
+        isRead: isRead,
+        isStarred: message.labelIds.includes('STARRED'),
+        folder: 'inbox',
+        gmailId: messageId
+      };
+
+    } catch (error) {
+      console.error('Erro ao buscar detalhes do email:', error);
+      return null;
+    }
+  },
+
+  extractEmailContent(payload) {
+    if (payload.parts) {
+      for (const part of payload.parts) {
+        if (part.mimeType === 'text/html' && part.body.data) {
+          return atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+        }
+        if (part.mimeType === 'text/plain' && part.body.data) {
+          const plainText = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+          return plainText.replace(/\n/g, '<br>');
+        }
+      }
+    } else if (payload.body.data) {
+      if (payload.mimeType === 'text/html') {
+        return atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+      } else {
+        const plainText = atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+        return plainText.replace(/\n/g, '<br>');
+      }
+    }
+    return 'Conteúdo não disponível';
+  },
+
+  createPreview(content) {
+    // Remove HTML tags e pega primeiros 120 caracteres
+    const textContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    return textContent.length > 120 ? textContent.substring(0, 120) + '...' : textContent;
+  },
+
+  formatDate(dateString) {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = now - date;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+      const diffMinutes = Math.floor(diffTime / (1000 * 60));
+
+      if (diffMinutes < 60) {
+        return `há ${diffMinutes} min`;
+      } else if (diffHours < 24) {
+        return `há ${diffHours}h`;
+      } else if (diffDays === 1) {
+        return 'ontem';
+      } else if (diffDays < 7) {
+        return `${diffDays} dias`;
+      } else {
+        return date.toLocaleDateString('pt-BR');
+      }
+    } catch (error) {
+      return 'Data inválida';
+    }
+  },
+
+  disconnectGmail() {
+    // Limpar dados salvos
+    localStorage.removeItem('gmail_access_token');
+    localStorage.removeItem('gmail_user_email');
+    
+    // Resetar estado
+    this.isConnected = false;
+    this.accessToken = null;
+    this.userEmail = null;
+    this.emails = [];
+    
+    // Atualizar UI
+    this.showDisconnectedState();
+    this.updateStats();
+    
+    showSuccess('Gmail', 'Conta desconectada com sucesso!');
+  },
+
+  bindEvents() {
+    // Navegação entre pastas
+    document.querySelectorAll('.email-folder').forEach(folder => {
+      folder.addEventListener('click', (e) => {
+        const folderType = e.currentTarget.dataset.folder;
+        this.switchFolder(folderType);
+      });
+    });
+
+    // Busca
+    const searchInput = document.getElementById('email-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        this.searchEmails(e.target.value);
+      });
+    }
+
+    // Botões de ação
+    const connectBtn = document.getElementById('connect-gmail-btn');
+    if (connectBtn) {
+      connectBtn.addEventListener('click', () => {
+        this.connectGmail();
+      });
+    }
+
+    const disconnectBtn = document.getElementById('disconnect-gmail-btn');
+    if (disconnectBtn) {
+      disconnectBtn.addEventListener('click', () => {
+        showConfirm(
+          'Desconectar Gmail',
+          'Tem certeza que deseja desconectar sua conta do Gmail?',
+          () => {
+            this.disconnectGmail();
+          }
+        );
+      });
+    }
+
+    const composeBtn = document.getElementById('compose-email-btn');
+    if (composeBtn) {
+      composeBtn.addEventListener('click', () => {
+        this.composeEmail();
+      });
+    }
+
+    const refreshBtn = document.getElementById('refresh-emails-btn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => {
+        this.refreshEmails();
+      });
+    }
+  },
+
+  switchFolder(folderType) {
+    this.currentFolder = folderType;
+    
+    // Atualizar UI das pastas
+    document.querySelectorAll('.email-folder').forEach(f => f.classList.remove('active'));
+    document.querySelector(`[data-folder="${folderType}"]`).classList.add('active');
+    
+    this.renderEmails();
+  },
+
+  getEmailsForFolder(folder) {
+    switch(folder) {
+      case 'inbox':
+        return this.emails.filter(e => e.folder === 'inbox');
+      case 'sent':
+        return []; // Simulado - vazio por enquanto
+      case 'starred':
+        return this.emails.filter(e => e.isStarred);
+      case 'drafts':
+        return []; // Simulado - vazio por enquanto
+      case 'trash':
+        return []; // Simulado - vazio por enquanto
+      default:
+        return this.emails;
+    }
+  },
+
+  renderEmails() {
+    const emailList = document.getElementById('email-list');
+    if (!emailList) return;
+
+    const emails = this.getEmailsForFolder(this.currentFolder);
+    
+    if (emails.length === 0) {
+      emailList.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+          <span class="material-symbols-outlined" style="font-size: 48px; margin-bottom: 16px; display: block;">inbox</span>
+          <p>Nenhum email encontrado</p>
+        </div>
+      `;
+      return;
+    }
+
+    emailList.innerHTML = emails.map(email => `
+      <div class="email-item ${!email.isRead ? 'unread' : ''}" onclick="emailSystem.openEmail(${email.id})">
+        <div class="email-avatar">${email.sender.charAt(0)}</div>
+        <div class="email-info">
+          <div class="email-sender">${email.sender}</div>
+          <div class="email-subject">${email.subject}</div>
+          <div class="email-preview">${email.preview}</div>
+        </div>
+        <div class="email-meta">
+          <div class="email-time">${email.time}</div>
+          <div class="email-actions-mini">
+            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.toggleStar(${email.id})" title="${email.isStarred ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
+              <span class="material-symbols-outlined">${email.isStarred ? 'star' : 'star_border'}</span>
+            </button>
+            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.deleteEmail(${email.id})" title="Excluir">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  openEmail(emailId) {
+    const email = this.emails.find(e => e.id === emailId);
+    if (!email) return;
+
+    // Marcar como lido
+    email.isRead = true;
+    this.updateStats();
+    this.renderEmails();
+
+    // Criar modal
+    const modal = document.createElement('div');
+    modal.className = 'email-modal';
+    modal.innerHTML = `
+      <div class="email-modal-content">
+        <div class="email-modal-header">
+          <div class="email-modal-title">${email.subject}</div>
+          <button class="email-modal-close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="email-modal-body">
+          <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
+            <strong>De:</strong> ${email.sender} &lt;${email.senderEmail}&gt;<br>
+            <strong>Assunto:</strong> ${email.subject}<br>
+            <strong>Data:</strong> ${email.time}
+          </div>
+          <div style="line-height: 1.6;">
+            ${email.content}
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+
+    // Fechar modal
+    const closeModal = () => {
+      modal.classList.remove('show');
+      setTimeout(() => {
+        if (modal.parentNode) {
+          modal.parentNode.removeChild(modal);
+        }
+      }, 200);
+    };
+
+    modal.querySelector('.email-modal-close').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  },
+
+  toggleStar(emailId) {
+    const email = this.emails.find(e => e.id === emailId);
+    if (email) {
+      email.isStarred = !email.isStarred;
+      this.updateStats();
+      this.renderEmails();
+      showSuccess('Email', email.isStarred ? 'Adicionado aos favoritos' : 'Removido dos favoritos');
+    }
+  },
+
+  deleteEmail(emailId) {
+    showConfirm(
+      'Excluir Email',
+      'Tem certeza que deseja excluir este email?',
+      () => {
+        this.emails = this.emails.filter(e => e.id !== emailId);
+        this.updateStats();
+        this.renderEmails();
+        showSuccess('Email', 'Email excluído com sucesso');
+      }
+    );
+  },
+
+  searchEmails(query) {
+    if (!query.trim()) {
+      this.renderEmails();
+      return;
+    }
+
+    const emailList = document.getElementById('email-list');
+    const filteredEmails = this.getEmailsForFolder(this.currentFolder).filter(email => 
+      email.sender.toLowerCase().includes(query.toLowerCase()) ||
+      email.subject.toLowerCase().includes(query.toLowerCase()) ||
+      email.preview.toLowerCase().includes(query.toLowerCase())
+    );
+
+    if (filteredEmails.length === 0) {
+      emailList.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+          <span class="material-symbols-outlined" style="font-size: 48px; margin-bottom: 16px; display: block;">search_off</span>
+          <p>Nenhum email encontrado para "${query}"</p>
+        </div>
+      `;
+      return;
+    }
+
+    emailList.innerHTML = filteredEmails.map(email => `
+      <div class="email-item ${!email.isRead ? 'unread' : ''}" onclick="emailSystem.openEmail(${email.id})">
+        <div class="email-avatar">${email.sender.charAt(0)}</div>
+        <div class="email-info">
+          <div class="email-sender">${email.sender}</div>
+          <div class="email-subject">${email.subject}</div>
+          <div class="email-preview">${email.preview}</div>
+        </div>
+        <div class="email-meta">
+          <div class="email-time">${email.time}</div>
+          <div class="email-actions-mini">
+            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.toggleStar(${email.id})">
+              <span class="material-symbols-outlined">${email.isStarred ? 'star' : 'star_border'}</span>
+            </button>
+            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.deleteEmail(${email.id})">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  composeEmail() {
+    showInfo('Novo Email', 'Funcionalidade de composição será implementada em breve!');
+  },
+
+  async refreshEmails() {
+    const btn = document.getElementById('refresh-emails-btn');
+    setButtonLoading(btn, true);
+    
+    try {
+      if (this.isConnected) {
+        await this.loadGmailEmails();
+      } else {
+        this.renderEmails();
+        showSuccess('Emails', 'Caixa de entrada atualizada!');
+      }
+    } catch (error) {
+      showError('Erro', 'Não foi possível atualizar os emails.');
+    } finally {
+      setButtonLoading(btn, false);
+    }
+  },
+
+  updateStats() {
+    const unreadCount = this.emails.filter(e => !e.isRead && e.folder === 'inbox').length;
+    const starredCount = this.emails.filter(e => e.isStarred).length;
+    
+    document.getElementById('inbox-count').textContent = unreadCount;
+    document.getElementById('starred-count').textContent = starredCount;
+    
+    // Atualizar contadores nas pastas
+    const inboxFolder = document.querySelector('[data-folder="inbox"] .folder-count');
+    const starredFolder = document.querySelector('[data-folder="starred"] .folder-count');
+    
+    if (inboxFolder) inboxFolder.textContent = unreadCount;
+    if (starredFolder) starredFolder.textContent = starredCount;
+  }
+};
+
+// Inicializar sistema de email quando a view for acessada
+document.addEventListener('DOMContentLoaded', () => {
+  // Detectar quando a view de email é aberta
+  const originalNavigation = document.querySelectorAll('.main-nav .nav-item > a[data-view]');
+  originalNavigation.forEach(link => {
+    const originalClick = link.onclick;
+    link.onclick = function(e) {
+      if (originalClick) originalClick.call(this, e);
+      if (this.dataset.view === 'email') {
+        setTimeout(() => emailSystem.init(), 100);
+      }
+    };
+  });
+});
 
 // ---- MELHORIAS DE TOUCH ----
 // Previne zoom em inputs em dispositivos móveis
