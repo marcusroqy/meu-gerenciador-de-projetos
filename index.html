@@ -246,6 +246,11 @@
                   <span>Favoritos</span>
                   <span class="folder-count">8</span>
                 </div>
+                <div class="email-folder" data-folder="important">
+                  <span class="material-symbols-outlined">priority_high</span>
+                  <span>Importantes</span>
+                  <span class="folder-count" id="important-count">0</span>
+                </div>
                 <div class="email-folder" data-folder="drafts">
                   <span class="material-symbols-outlined">draft</span>
                   <span>Rascunhos</span>
@@ -259,15 +264,102 @@
             </div>
 
             <div class="email-content">
+              <!-- Abas de Email -->
+              <div class="email-tabs">
+                <button class="email-tab active" data-tab="all">
+                  <span class="material-symbols-outlined">all_inbox</span>
+                  Todos
+                </button>
+                <button class="email-tab" data-tab="primary">
+                  <span class="material-symbols-outlined">inbox</span>
+                  Primário
+                </button>
+                <button class="email-tab" data-tab="social">
+                  <span class="material-symbols-outlined">people</span>
+                  Social
+                </button>
+                <button class="email-tab" data-tab="promotions">
+                  <span class="material-symbols-outlined">local_offer</span>
+                  Promoções
+                </button>
+                <button class="email-tab" data-tab="updates">
+                  <span class="material-symbols-outlined">system_update</span>
+                  Atualizações
+                </button>
+              </div>
+
+              <!-- Pesquisa Avançada -->
               <div class="email-search">
                 <div class="search-container">
                   <span class="material-symbols-outlined">search</span>
                   <input type="text" placeholder="Buscar emails..." id="email-search-input">
+                  <button class="search-filters-btn" id="search-filters-btn" title="Filtros avançados">
+                    <span class="material-symbols-outlined">tune</span>
+                  </button>
+                </div>
+                
+                <!-- Filtros Avançados -->
+                <div class="search-filters" id="search-filters" style="display: none;">
+                  <div class="filter-row">
+                    <div class="filter-group">
+                      <label>Remetente:</label>
+                      <input type="text" id="filter-sender" placeholder="De quem...">
+                    </div>
+                    <div class="filter-group">
+                      <label>Assunto:</label>
+                      <input type="text" id="filter-subject" placeholder="Assunto contém...">
+                    </div>
+                  </div>
+                  
+                  <div class="filter-row">
+                    <div class="filter-group">
+                      <label>Data:</label>
+                      <select id="filter-date">
+                        <option value="">Qualquer data</option>
+                        <option value="today">Hoje</option>
+                        <option value="yesterday">Ontem</option>
+                        <option value="week">Esta semana</option>
+                        <option value="month">Este mês</option>
+                        <option value="year">Este ano</option>
+                      </select>
+                    </div>
+                    <div class="filter-group">
+                      <label>Status:</label>
+                      <select id="filter-status">
+                        <option value="">Todos</option>
+                        <option value="unread">Não lidos</option>
+                        <option value="read">Lidos</option>
+                        <option value="starred">Favoritos</option>
+                        <option value="important">Importantes</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="filter-actions">
+                    <button class="filter-btn apply" id="apply-filters">
+                      <span class="material-symbols-outlined">search</span>
+                      Buscar
+                    </button>
+                    <button class="filter-btn clear" id="clear-filters">
+                      <span class="material-symbols-outlined">clear</span>
+                      Limpar
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Sugestões de Pesquisa -->
+                <div class="search-suggestions" id="search-suggestions" style="display: none;">
+                  <!-- Sugestões serão inseridas aqui -->
                 </div>
               </div>
 
               <div class="email-list" id="email-list">
                 <!-- Lista de emails será populada aqui -->
+              </div>
+              
+              <!-- Paginação -->
+              <div id="email-pagination" class="email-pagination">
+                <!-- Controles de paginação serão inseridos aqui -->
               </div>
             </div>
           </div>

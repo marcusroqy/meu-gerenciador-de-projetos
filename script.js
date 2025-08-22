@@ -868,7 +868,15 @@ const emailSystem = {
   isConnected: false,
   accessToken: null,
   userEmail: null,
-  emails: [
+  emails: [],
+  allEmails: [], // Todos os emails carregados
+  currentPage: 1,
+  emailsPerPage: 10,
+  importantEmails: [], // Emails marcados como importantes
+  isLoading: false,
+  
+  // Emails de exemplo para demonstração
+  demoEmails: [
     {
       id: 1,
       sender: 'João Silva',
@@ -890,72 +898,172 @@ const emailSystem = {
       timestamp: Date.now() - 2 * 60 * 60 * 1000,
       isRead: false,
       isStarred: false,
-      folder: 'inbox'
+      folder: 'inbox',
+      isImportant: false
     },
-    {
-      id: 2,
-      sender: 'Maria Costa',
-      senderEmail: 'maria@cliente.com',
-      subject: 'Feedback sobre proposta',
-      preview: 'Boa tarde! Revisei a proposta enviada e gostaria de fazer alguns comentários...',
-      content: `
-        <p>Boa tarde!</p>
-        <p>Revisei a proposta enviada e gostaria de fazer alguns comentários:</p>
-        <p>1. O prazo está adequado para nossas necessidades<br>
-        2. Os valores estão dentro do orçamento previsto<br>
-        3. Gostaríamos de incluir mais uma funcionalidade</p>
-        <p>Podemos agendar uma conversa para discutir os detalhes?</p>
-        <p>Obrigada!</p>
-      `,
-      time: 'há 5 horas',
-      timestamp: Date.now() - 5 * 60 * 60 * 1000,
-      isRead: true,
-      isStarred: true,
-      folder: 'inbox'
-    },
-    {
-      id: 3,
-      sender: 'Carlos Mendes',
-      senderEmail: 'carlos@fornecedor.com',
-      subject: 'Atualização de preços - 2024',
-      preview: 'Informamos que nossos preços foram atualizados para o próximo ano...',
-      content: `
-        <p>Prezados,</p>
-        <p>Informamos que nossos preços foram atualizados para o próximo ano.</p>
-        <p>Segue em anexo a nova tabela de preços que entra em vigor a partir de janeiro de 2024.</p>
-        <p>Qualquer dúvida, estamos à disposição.</p>
-        <p>Atenciosamente,<br>Carlos Mendes</p>
-      `,
-      time: 'ontem',
-      timestamp: Date.now() - 24 * 60 * 60 * 1000,
-      isRead: true,
-      isStarred: false,
-      folder: 'inbox'
-    },
-    {
-      id: 4,
-      sender: 'Ana Oliveira',
-      senderEmail: 'ana@empresa.com',
-      subject: 'Relatório mensal finalizado',
-      preview: 'O relatório mensal foi finalizado e está disponível para download...',
-      content: `
-        <p>Equipe,</p>
-        <p>O relatório mensal foi finalizado e está disponível para download no sistema.</p>
-        <p>Principais destaques:</p>
-        <ul>
-          <li>Crescimento de 15% em relação ao mês anterior</li>
-          <li>3 novos clientes adquiridos</li>
-          <li>Taxa de satisfação de 98%</li>
-        </ul>
-        <p>Parabéns pelo excelente trabalho!</p>
-      `,
-      time: '2 dias',
-      timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
-      isRead: false,
-      isStarred: true,
-      folder: 'inbox'
-    }
-  ],
+          {
+        id: 2,
+        sender: 'Maria Costa',
+        senderEmail: 'maria@cliente.com',
+        subject: 'Feedback sobre proposta',
+        preview: 'Boa tarde! Revisei a proposta enviada e gostaria de fazer alguns comentários...',
+        content: `
+          <p>Boa tarde!</p>
+          <p>Revisei a proposta enviada e gostaria de fazer alguns comentários:</p>
+          <p>1. O prazo está adequado para nossas necessidades<br>
+          2. Os valores estão dentro do orçamento previsto<br>
+          3. Gostaríamos de incluir mais uma funcionalidade</p>
+          <p>Podemos agendar uma conversa para discutir os detalhes?</p>
+          <p>Obrigada!</p>
+        `,
+        time: 'há 5 horas',
+        timestamp: Date.now() - 5 * 60 * 60 * 1000,
+        isRead: true,
+        isStarred: true,
+        folder: 'inbox',
+        isImportant: true
+      },
+          {
+        id: 3,
+        sender: 'Carlos Mendes',
+        senderEmail: 'carlos@fornecedor.com',
+        subject: 'Atualização de preços - 2024',
+        preview: 'Informamos que nossos preços foram atualizados para o próximo ano...',
+        content: `
+          <p>Prezados,</p>
+          <p>Informamos que nossos preços foram atualizados para o próximo ano.</p>
+          <p>Segue em anexo a nova tabela de preços que entra em vigor a partir de janeiro de 2024.</p>
+          <p>Qualquer dúvida, estamos à disposição.</p>
+          <p>Atenciosamente,<br>Carlos Mendes</p>
+        `,
+        time: 'ontem',
+        timestamp: Date.now() - 24 * 60 * 60 * 1000,
+        isRead: true,
+        isStarred: false,
+        folder: 'inbox',
+        isImportant: false
+      },
+          {
+        id: 4,
+        sender: 'Ana Oliveira',
+        senderEmail: 'ana@empresa.com',
+        subject: 'Relatório mensal finalizado',
+        preview: 'O relatório mensal foi finalizado e está disponível para download...',
+        content: `
+          <p>Equipe,</p>
+          <p>O relatório mensal foi finalizado e está disponível para download no sistema.</p>
+          <p>Principais destaques:</p>
+          <ul>
+            <li>Crescimento de 15% em relação ao mês anterior</li>
+            <li>3 novos clientes adquiridos</li>
+            <li>Taxa de satisfação de 98%</li>
+          </ul>
+          <p>Parabéns pelo excelente trabalho!</p>
+        `,
+        time: '2 dias',
+        timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        isRead: false,
+        isStarred: true,
+        folder: 'inbox',
+                isImportant: true
+      },
+      {
+        id: 5,
+        sender: 'Facebook',
+        senderEmail: 'notification@facebook.com',
+        subject: 'Você tem novas notificações',
+        preview: 'João Silva comentou na sua foto. Maria Costa curtiu seu post...',
+        content: `
+          <p>Olá!</p>
+          <p>Você tem novas atividades no Facebook:</p>
+          <ul>
+            <li>João Silva comentou na sua foto</li>
+            <li>Maria Costa curtiu seu post</li>
+            <li>Pedro Santos enviou uma solicitação de amizade</li>
+          </ul>
+          <p>Acesse o Facebook para ver mais.</p>
+        `,
+        time: 'há 1h',
+        timestamp: Date.now() - 1 * 60 * 60 * 1000,
+        isRead: false,
+        isStarred: false,
+        folder: 'inbox',
+        isImportant: false
+      },
+      {
+        id: 6,
+        sender: 'Amazon',
+        senderEmail: 'vendas@amazon.com.br',
+        subject: 'Black Friday: Até 70% OFF em Eletrônicos! 🔥',
+        preview: 'Não perca! Ofertas imperdíveis com descontos de até 70% em smartphones, notebooks...',
+        content: `
+          <h2>🔥 BLACK FRIDAY AMAZON 🔥</h2>
+          <p>Não perca as melhores ofertas do ano!</p>
+          <ul>
+            <li>📱 Smartphones até 60% OFF</li>
+            <li>💻 Notebooks até 70% OFF</li>
+            <li>🎧 Fones de ouvido até 50% OFF</li>
+          </ul>
+          <p>Cupom: BLACKFRIDAY2024</p>
+          <p>Válido até domingo!</p>
+        `,
+        time: 'há 3h',
+        timestamp: Date.now() - 3 * 60 * 60 * 1000,
+        isRead: true,
+        isStarred: false,
+        folder: 'inbox',
+        isImportant: false
+      },
+      {
+        id: 7,
+        sender: 'Microsoft Teams',
+        senderEmail: 'updates@teams.microsoft.com',
+        subject: 'Atualização do Microsoft Teams - Novos recursos',
+        preview: 'Confira as novidades da versão 2.1: Nova interface, melhor qualidade de vídeo...',
+        content: `
+          <h3>Novidades do Microsoft Teams v2.1</h3>
+          <p>Confira os novos recursos:</p>
+          <ul>
+            <li>🎨 Nova interface mais moderna</li>
+            <li>📹 Melhor qualidade de vídeo em 4K</li>
+            <li>🔄 Sincronização mais rápida</li>
+            <li>🛡️ Novas opções de segurança</li>
+          </ul>
+          <p>A atualização será instalada automaticamente.</p>
+        `,
+        time: 'ontem',
+        timestamp: Date.now() - 24 * 60 * 60 * 1000,
+        isRead: false,
+        isStarred: false,
+        folder: 'inbox',
+        isImportant: false
+      },
+      {
+        id: 8,
+        sender: 'LinkedIn',
+        senderEmail: 'notifications@linkedin.com',
+        subject: 'Seu perfil teve 25 visualizações esta semana',
+        preview: 'Profissionais estão interessados no seu perfil. Veja quem visualizou...',
+        content: `
+          <p>Ótimas notícias!</p>
+          <p>Seu perfil no LinkedIn teve 25 visualizações esta semana.</p>
+          <p>Profissionais das seguintes empresas visualizaram seu perfil:</p>
+          <ul>
+            <li>Google Brasil</li>
+            <li>Microsoft</li>
+            <li>Banco do Brasil</li>
+            <li>Petrobras</li>
+          </ul>
+          <p>Continue engajando para aumentar sua visibilidade!</p>
+        `,
+        time: 'há 2 dias',
+        timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
+        isRead: true,
+        isStarred: true,
+        folder: 'inbox',
+        isImportant: false
+      }
+    ],
 
   async init() {
     this.checkConnection();
@@ -963,6 +1071,10 @@ const emailSystem = {
       await this.loadGmailEmails();
     } else {
       this.showDisconnectedState();
+      // Inicializar com emails de exemplo se não estiver conectado
+      this.emails = [...this.demoEmails];
+      this.allEmails = [...this.demoEmails];
+      this.updateImportantEmails();
     }
     this.bindEvents();
     this.updateStats();
@@ -978,6 +1090,512 @@ const emailSystem = {
       this.isConnected = true;
       this.showConnectedState();
     }
+  },
+
+  // Funções de paginação
+  nextPage() {
+    const maxPage = Math.ceil(this.allEmails.length / this.emailsPerPage);
+    if (this.currentPage < maxPage) {
+      this.currentPage++;
+      this.updateEmailDisplay();
+    }
+  },
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updateEmailDisplay();
+    }
+  },
+
+  goToPage(page) {
+    const maxPage = Math.ceil(this.allEmails.length / this.emailsPerPage);
+    if (page >= 1 && page <= maxPage) {
+      this.currentPage = page;
+      this.updateEmailDisplay();
+    }
+  },
+
+  updateEmailDisplay() {
+    const startIndex = (this.currentPage - 1) * this.emailsPerPage;
+    const endIndex = startIndex + this.emailsPerPage;
+    this.emails = this.allEmails.slice(startIndex, endIndex);
+    this.renderEmails();
+    this.renderPagination();
+  },
+
+  renderPagination() {
+    const paginationContainer = document.getElementById('email-pagination');
+    if (!paginationContainer) return;
+
+    const totalPages = Math.ceil(this.allEmails.length / this.emailsPerPage);
+    
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = '';
+      return;
+    }
+
+    let paginationHTML = `
+      <div class="pagination-controls">
+        <button class="pagination-btn" onclick="window.emailSystem.prevPage()" ${this.currentPage === 1 ? 'disabled' : ''}>
+          <span class="material-symbols-outlined">chevron_left</span>
+          Anterior
+        </button>
+        
+        <div class="page-numbers">
+    `;
+
+    // Mostrar até 5 páginas com elipses se necessário
+    const startPage = Math.max(1, this.currentPage - 2);
+    const endPage = Math.min(totalPages, this.currentPage + 2);
+
+    if (startPage > 1) {
+      paginationHTML += `<span class="page-ellipsis">...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      paginationHTML += `
+        <button class="page-btn ${i === this.currentPage ? 'active' : ''}" 
+                onclick="window.emailSystem.goToPage(${i})">
+          ${i}
+        </button>
+      `;
+    }
+
+    if (endPage < totalPages) {
+      paginationHTML += `<span class="page-ellipsis">...</span>`;
+    }
+
+    paginationHTML += `
+        </div>
+        
+        <button class="pagination-btn" onclick="window.emailSystem.nextPage()" ${this.currentPage === totalPages ? 'disabled' : ''}>
+          Próxima
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+      
+      <div class="pagination-info">
+        Página ${this.currentPage} de ${totalPages} • ${this.emails.length} emails
+      </div>
+    `;
+
+    paginationContainer.innerHTML = paginationHTML;
+  },
+
+  // Funções para emails importantes
+  toggleImportant(emailId) {
+    const email = this.allEmails.find(e => e.id === emailId);
+    if (email) {
+      email.isImportant = !email.isImportant;
+      this.updateImportantEmails();
+      this.updateEmailDisplay();
+      this.renderEmails();
+    }
+  },
+
+  updateImportantEmails() {
+    this.importantEmails = this.allEmails.filter(email => email.isImportant);
+  },
+
+  showImportantEmails() {
+    this.currentFolder = 'important';
+    this.emails = this.importantEmails;
+    this.currentPage = 1;
+    this.renderEmails();
+    this.renderPagination();
+    this.updateStats();
+  },
+
+  // Sistema de abas
+  currentTab: 'all',
+  
+  switchTab(tabName) {
+    this.currentTab = tabName;
+    
+    // Atualizar interface das abas
+    document.querySelectorAll('.email-tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    
+    // Filtrar emails por categoria
+    this.filterEmailsByTab(tabName);
+  },
+
+  filterEmailsByTab(tabName) {
+    let filteredEmails = [...this.allEmails];
+    
+    switch (tabName) {
+      case 'primary':
+        filteredEmails = this.allEmails.filter(email => this.isPrimaryEmail(email));
+        break;
+      case 'social':
+        filteredEmails = this.allEmails.filter(email => this.isSocialEmail(email));
+        break;
+      case 'promotions':
+        filteredEmails = this.allEmails.filter(email => this.isPromotionEmail(email));
+        break;
+      case 'updates':
+        filteredEmails = this.allEmails.filter(email => this.isUpdateEmail(email));
+        break;
+      case 'all':
+      default:
+        filteredEmails = this.allEmails;
+        break;
+    }
+    
+    this.emails = filteredEmails;
+    this.currentPage = 1;
+    this.updateEmailDisplay();
+  },
+
+  // Classificação de emails por categoria
+  isPrimaryEmail(email) {
+    const primaryKeywords = ['reunião', 'projeto', 'importante', 'urgente', 'relatório'];
+    const content = (email.subject + ' ' + email.content + ' ' + email.sender).toLowerCase();
+    return primaryKeywords.some(keyword => content.includes(keyword)) || email.isImportant;
+  },
+
+  isSocialEmail(email) {
+    const socialKeywords = ['facebook', 'twitter', 'instagram', 'linkedin', 'social', 'rede'];
+    const socialDomains = ['facebook.com', 'twitter.com', 'instagram.com', 'linkedin.com'];
+    const content = (email.subject + ' ' + email.content + ' ' + email.senderEmail).toLowerCase();
+    return socialKeywords.some(keyword => content.includes(keyword)) ||
+           socialDomains.some(domain => email.senderEmail.includes(domain));
+  },
+
+  isPromotionEmail(email) {
+    const promoKeywords = ['promoção', 'desconto', 'oferta', 'black friday', 'cupom', 'venda', 'sale'];
+    const content = (email.subject + ' ' + email.content).toLowerCase();
+    return promoKeywords.some(keyword => content.includes(keyword));
+  },
+
+  isUpdateEmail(email) {
+    const updateKeywords = ['atualização', 'update', 'novidades', 'changelog', 'versão', 'termos'];
+    const content = (email.subject + ' ' + email.content).toLowerCase();
+    return updateKeywords.some(keyword => content.includes(keyword));
+  },
+
+  // Sistema de pesquisa avançada
+  searchHistory: [],
+  currentFilters: {},
+
+  toggleSearchFilters() {
+    const filtersDiv = document.getElementById('search-filters');
+    const filtersBtn = document.getElementById('search-filters-btn');
+    
+    if (filtersDiv.style.display === 'none') {
+      filtersDiv.style.display = 'block';
+      filtersBtn.classList.add('active');
+    } else {
+      filtersDiv.style.display = 'none';
+      filtersBtn.classList.remove('active');
+    }
+  },
+
+  applyAdvancedSearch() {
+    const filters = {
+      query: document.getElementById('email-search-input').value.toLowerCase(),
+      sender: document.getElementById('filter-sender').value.toLowerCase(),
+      subject: document.getElementById('filter-subject').value.toLowerCase(),
+      date: document.getElementById('filter-date').value,
+      status: document.getElementById('filter-status').value
+    };
+
+    this.currentFilters = filters;
+    
+    // Salvar no histórico se houver algum filtro
+    if (Object.values(filters).some(value => value)) {
+      this.addToSearchHistory(filters);
+    }
+
+    let filteredEmails = [...this.allEmails];
+
+    // Aplicar filtro de texto geral
+    if (filters.query) {
+      filteredEmails = filteredEmails.filter(email => {
+        const searchText = (email.subject + ' ' + email.content + ' ' + email.sender).toLowerCase();
+        return searchText.includes(filters.query);
+      });
+    }
+
+    // Aplicar filtro de remetente
+    if (filters.sender) {
+      filteredEmails = filteredEmails.filter(email => 
+        email.sender.toLowerCase().includes(filters.sender) ||
+        email.senderEmail.toLowerCase().includes(filters.sender)
+      );
+    }
+
+    // Aplicar filtro de assunto
+    if (filters.subject) {
+      filteredEmails = filteredEmails.filter(email => 
+        email.subject.toLowerCase().includes(filters.subject)
+      );
+    }
+
+    // Aplicar filtro de data
+    if (filters.date) {
+      filteredEmails = this.filterByDate(filteredEmails, filters.date);
+    }
+
+    // Aplicar filtro de status
+    if (filters.status) {
+      filteredEmails = this.filterByStatus(filteredEmails, filters.status);
+    }
+
+    this.emails = filteredEmails;
+    this.currentPage = 1;
+    this.updateEmailDisplay();
+    
+    // Fechar painel de filtros
+    this.toggleSearchFilters();
+    
+    showSuccess('Pesquisa', `${filteredEmails.length} emails encontrados`);
+  },
+
+  filterByDate(emails, dateFilter) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    return emails.filter(email => {
+      const emailDate = new Date(email.timestamp);
+      
+      switch (dateFilter) {
+        case 'today':
+          return emailDate >= today;
+        case 'yesterday':
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          return emailDate >= yesterday && emailDate < today;
+        case 'week':
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return emailDate >= weekAgo;
+        case 'month':
+          const monthAgo = new Date(today);
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          return emailDate >= monthAgo;
+        case 'year':
+          const yearAgo = new Date(today);
+          yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+          return emailDate >= yearAgo;
+        default:
+          return true;
+      }
+    });
+  },
+
+  filterByStatus(emails, statusFilter) {
+    switch (statusFilter) {
+      case 'unread':
+        return emails.filter(email => !email.isRead);
+      case 'read':
+        return emails.filter(email => email.isRead);
+      case 'starred':
+        return emails.filter(email => email.isStarred);
+      case 'important':
+        return emails.filter(email => email.isImportant);
+      default:
+        return emails;
+    }
+  },
+
+  clearSearchFilters() {
+    document.getElementById('email-search-input').value = '';
+    document.getElementById('filter-sender').value = '';
+    document.getElementById('filter-subject').value = '';
+    document.getElementById('filter-date').value = '';
+    document.getElementById('filter-status').value = '';
+    
+    this.currentFilters = {};
+    this.emails = [...this.allEmails];
+    this.currentPage = 1;
+    this.updateEmailDisplay();
+    this.toggleSearchFilters();
+    
+    showInfo('Filtros', 'Todos os filtros foram limpos');
+  },
+
+  addToSearchHistory(filters) {
+    const searchTerm = filters.query || 
+                      (filters.sender ? `De: ${filters.sender}` : '') ||
+                      (filters.subject ? `Assunto: ${filters.subject}` : '') ||
+                      'Pesquisa avançada';
+    
+    // Remover se já existe
+    this.searchHistory = this.searchHistory.filter(item => item.term !== searchTerm);
+    
+    // Adicionar no início
+    this.searchHistory.unshift({
+      term: searchTerm,
+      filters: { ...filters },
+      timestamp: Date.now()
+    });
+    
+    // Manter apenas os últimos 10
+    this.searchHistory = this.searchHistory.slice(0, 10);
+    
+    // Salvar no localStorage
+    localStorage.setItem('email_search_history', JSON.stringify(this.searchHistory));
+  },
+
+  loadSearchHistory() {
+    const saved = localStorage.getItem('email_search_history');
+    if (saved) {
+      this.searchHistory = JSON.parse(saved);
+    }
+  },
+
+  showSearchSuggestions() {
+    const input = document.getElementById('email-search-input');
+    const suggestionsDiv = document.getElementById('search-suggestions');
+    const query = input.value.toLowerCase();
+    
+    if (query.length < 2) {
+      suggestionsDiv.style.display = 'none';
+      return;
+    }
+    
+    // Sugestões baseadas no histórico
+    const historySuggestions = this.searchHistory
+      .filter(item => item.term.toLowerCase().includes(query))
+      .slice(0, 3);
+    
+    // Sugestões baseadas em remetentes
+    const senderSuggestions = [...new Set(this.allEmails.map(email => email.sender))]
+      .filter(sender => sender.toLowerCase().includes(query))
+      .slice(0, 3);
+    
+    // Sugestões baseadas em assuntos
+    const subjectSuggestions = this.allEmails
+      .map(email => email.subject)
+      .filter(subject => subject.toLowerCase().includes(query))
+      .slice(0, 3);
+    
+    let suggestionsHTML = '';
+    
+    if (historySuggestions.length > 0) {
+      suggestionsHTML += historySuggestions.map(item => `
+        <div class="suggestion-item" onclick="emailSystem.applySuggestion('${item.term}')">
+          <span class="suggestion-icon material-symbols-outlined">history</span>
+          <span class="suggestion-text">${item.term}</span>
+          <span class="suggestion-type">Histórico</span>
+        </div>
+      `).join('');
+    }
+    
+    if (senderSuggestions.length > 0) {
+      suggestionsHTML += senderSuggestions.map(sender => `
+        <div class="suggestion-item" onclick="emailSystem.applySuggestion('${sender}', 'sender')">
+          <span class="suggestion-icon material-symbols-outlined">person</span>
+          <span class="suggestion-text">${sender}</span>
+          <span class="suggestion-type">Remetente</span>
+        </div>
+      `).join('');
+    }
+    
+    if (subjectSuggestions.length > 0) {
+      suggestionsHTML += subjectSuggestions.map(subject => `
+        <div class="suggestion-item" onclick="emailSystem.applySuggestion('${subject}', 'subject')">
+          <span class="suggestion-icon material-symbols-outlined">subject</span>
+          <span class="suggestion-text">${subject}</span>
+          <span class="suggestion-type">Assunto</span>
+        </div>
+      `).join('');
+    }
+    
+    if (suggestionsHTML) {
+      suggestionsDiv.innerHTML = suggestionsHTML;
+      suggestionsDiv.style.display = 'block';
+    } else {
+      suggestionsDiv.style.display = 'none';
+    }
+  },
+
+  applySuggestion(text, type = 'general') {
+    const input = document.getElementById('email-search-input');
+    const suggestionsDiv = document.getElementById('search-suggestions');
+    
+    if (type === 'sender') {
+      document.getElementById('filter-sender').value = text;
+      this.toggleSearchFilters();
+    } else if (type === 'subject') {
+      document.getElementById('filter-subject').value = text;
+      this.toggleSearchFilters();
+    } else {
+      input.value = text;
+    }
+    
+    suggestionsDiv.style.display = 'none';
+    this.applyAdvancedSearch();
+  },
+
+  bindEvents() {
+    // Carregar histórico de pesquisa
+    this.loadSearchHistory();
+    
+    // Conectar/Desconectar Gmail
+    document.getElementById('connect-gmail-btn').addEventListener('click', () => this.connectGmail());
+    document.getElementById('disconnect-gmail-btn').addEventListener('click', () => this.disconnectGmail());
+    
+    // Ações de email
+    document.getElementById('compose-email-btn').addEventListener('click', () => this.composeEmail());
+    document.getElementById('refresh-emails-btn').addEventListener('click', (e) => this.refreshEmails(e));
+    
+    // Teste de APIs
+    document.getElementById('test-apis-btn').addEventListener('click', () => this.testAPIs());
+    
+    // Abas de email
+    document.querySelectorAll('.email-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const tabName = e.currentTarget.dataset.tab;
+        this.switchTab(tabName);
+      });
+    });
+    
+    // Pesquisa avançada
+    document.getElementById('email-search-input').addEventListener('input', (e) => {
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        if (e.target.value.length >= 2) {
+          this.showSearchSuggestions();
+        } else {
+          document.getElementById('search-suggestions').style.display = 'none';
+        }
+      }, 300);
+    });
+    
+    // Botão de filtros
+    document.getElementById('search-filters-btn').addEventListener('click', () => this.toggleSearchFilters());
+    
+    // Aplicar filtros
+    document.getElementById('apply-filters').addEventListener('click', () => this.applyAdvancedSearch());
+    document.getElementById('clear-filters').addEventListener('click', () => this.clearSearchFilters());
+    
+    // Fechar sugestões ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.email-search')) {
+        document.getElementById('search-suggestions').style.display = 'none';
+        if (document.getElementById('search-filters').style.display === 'block') {
+          document.getElementById('search-filters').style.display = 'none';
+          document.getElementById('search-filters-btn').classList.remove('active');
+        }
+      }
+    });
+    
+    // Pastas de email
+    document.querySelectorAll('.email-folder').forEach(folder => {
+      folder.addEventListener('click', (e) => {
+        const folderType = e.currentTarget.dataset.folder;
+        if (folderType === 'important') {
+          this.showImportantEmails();
+        } else {
+          this.switchFolder(folderType);
+        }
+      });
+    });
   },
 
   showConnectedState() {
@@ -1942,8 +2560,9 @@ const emailSystem = {
   },
 
   updateStats() {
-    const unreadCount = this.emails.filter(e => !e.isRead && e.folder === 'inbox').length;
-    const starredCount = this.emails.filter(e => e.isStarred).length;
+    const unreadCount = this.allEmails.filter(e => !e.isRead && e.folder === 'inbox').length;
+    const starredCount = this.allEmails.filter(e => e.isStarred).length;
+    const importantCount = this.allEmails.filter(e => e.isImportant).length;
     
     document.getElementById('inbox-count').textContent = unreadCount;
     document.getElementById('starred-count').textContent = starredCount;
@@ -1951,9 +2570,11 @@ const emailSystem = {
     // Atualizar contadores nas pastas
     const inboxFolder = document.querySelector('[data-folder="inbox"] .folder-count');
     const starredFolder = document.querySelector('[data-folder="starred"] .folder-count');
+    const importantFolder = document.getElementById('important-count');
     
     if (inboxFolder) inboxFolder.textContent = unreadCount;
     if (starredFolder) starredFolder.textContent = starredCount;
+    if (importantFolder) importantFolder.textContent = importantCount;
   },
 
   testAPIs() {
