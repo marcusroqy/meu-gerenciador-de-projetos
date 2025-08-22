@@ -743,12 +743,24 @@ const emailSystem = {
     document.getElementById('email-connection-status').style.display = 'none';
     
     const emailList = document.getElementById('email-list');
+    
+    // Verificar se as APIs do Google estão disponíveis
+    const googleApiStatus = typeof gapi !== 'undefined' ? '✅ Carregada' : '❌ Não carregada';
+    const googleIdentityStatus = typeof google !== 'undefined' ? '✅ Carregada' : '❌ Não carregada';
+    
     emailList.innerHTML = `
       <div class="email-disconnected-state">
         <span class="material-symbols-outlined">link_off</span>
         <h3>Conecte sua conta Gmail</h3>
         <p>Para visualizar seus emails reais, conecte sua conta do Gmail clicando no botão "Conectar Gmail" acima.</p>
         <p><small>Seus dados ficam seguros - usamos OAuth2 do Google.</small></p>
+        <div style="margin-top: 20px; padding: 12px; background: var(--bg-hover); border-radius: 8px; font-size: 12px;">
+          <strong>Status das APIs:</strong><br>
+          Google API (gapi): ${googleApiStatus}<br>
+          Google Identity: ${googleIdentityStatus}<br>
+          Client ID: ${gmailConfig.clientId ? '✅ Configurado' : '❌ Não configurado'}<br>
+          API Key: ${gmailConfig.apiKey ? '✅ Configurado' : '❌ Não configurado'}
+        </div>
       </div>
     `;
   },
@@ -757,11 +769,24 @@ const emailSystem = {
     try {
       showInfo('Conectando', 'Aguarde enquanto conectamos ao Gmail...');
       
+      console.log('Tentando conectar Gmail...');
+      console.log('Client ID:', gmailConfig.clientId);
+      console.log('API Key configurada:', gmailConfig.apiKey ? 'Sim' : 'Não');
+      
+      // Verificar se os scripts Google foram carregados
+      if (typeof gapi === 'undefined') {
+        throw new Error('Google API não foi carregada. Verifique sua conexão com a internet.');
+      }
+      
       // Inicializar APIs do Google
+      console.log('Inicializando Google API...');
       await this.initializeGoogleAPI();
+      console.log('Google API inicializada com sucesso');
       
       // Realizar autenticação OAuth2
+      console.log('Iniciando autenticação...');
       await this.authenticateUser();
+      console.log('Autenticação realizada com sucesso');
       
       showSuccess('Gmail Conectado', 'Sua conta foi conectada com sucesso!');
       this.isConnected = true;
@@ -769,8 +794,20 @@ const emailSystem = {
       await this.loadGmailEmails();
       
     } catch (error) {
-      console.error('Erro ao conectar Gmail:', error);
-      showError('Erro de Conexão', 'Não foi possível conectar ao Gmail. Tente novamente.');
+      console.error('Erro detalhado ao conectar Gmail:', error);
+      let errorMessage = 'Não foi possível conectar ao Gmail.';
+      
+      if (error.message.includes('popup_blocked')) {
+        errorMessage = 'Pop-up bloqueado. Permita pop-ups para este site e tente novamente.';
+      } else if (error.message.includes('access_denied')) {
+        errorMessage = 'Acesso negado. Você precisa autorizar o aplicativo para acessar seus emails.';
+      } else if (error.message.includes('invalid_client')) {
+        errorMessage = 'Client ID inválido. Verifique a configuração no Google Cloud Console.';
+      } else if (error.message.includes('redirect_uri_mismatch')) {
+        errorMessage = 'URL não autorizada. Configure as origens autorizadas no Google Cloud Console.';
+      }
+      
+      showError('Erro de Conexão', errorMessage);
     }
   },
 
@@ -781,16 +818,18 @@ const emailSystem = {
         return;
       }
 
-      gapi.load('auth2:client', async () => {
+      // Usar apenas a parte client, sem auth2 para evitar CORS
+      gapi.load('client', async () => {
         try {
           await gapi.client.init({
             apiKey: gmailConfig.apiKey,
-            clientId: gmailConfig.clientId,
-            discoveryDocs: [gmailConfig.discoveryDoc],
-            scope: gmailConfig.scopes
+            discoveryDocs: [gmailConfig.discoveryDoc]
           });
+          
+          console.log('gapi.client inicializado com sucesso');
           resolve();
         } catch (error) {
+          console.error('Erro detalhado:', error);
           reject(error);
         }
       });
@@ -798,15 +837,57 @@ const emailSystem = {
   },
 
   async authenticateUser() {
-    const authInstance = gapi.auth2.getAuthInstance();
-    const user = await authInstance.signIn();
-    
-    this.accessToken = user.getAuthResponse().access_token;
-    this.userEmail = user.getBasicProfile().getEmail();
-    
-    // Salvar no localStorage
-    localStorage.setItem('gmail_access_token', this.accessToken);
-    localStorage.setItem('gmail_user_email', this.userEmail);
+    return new Promise((resolve, reject) => {
+      // Usar a nova Google Identity API
+      if (typeof google === 'undefined' || !google.accounts) {
+        reject(new Error('Google Identity API não carregada'));
+        return;
+      }
+
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: gmailConfig.clientId,
+        scope: gmailConfig.scopes,
+        callback: (response) => {
+          if (response.error) {
+            reject(new Error(response.error));
+            return;
+          }
+          
+          this.accessToken = response.access_token;
+          
+          // Buscar info do usuário
+          this.getUserInfo().then(() => {
+            // Salvar no localStorage
+            localStorage.setItem('gmail_access_token', this.accessToken);
+            localStorage.setItem('gmail_user_email', this.userEmail);
+            resolve();
+          }).catch(reject);
+        }
+      });
+
+      client.requestAccessToken();
+    });
+  },
+
+  async getUserInfo() {
+    try {
+      const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao buscar informações do usuário');
+      }
+      
+      const userInfo = await response.json();
+      this.userEmail = userInfo.email;
+      
+    } catch (error) {
+      console.error('Erro ao buscar info do usuário:', error);
+      this.userEmail = 'usuario@gmail.com'; // Fallback
+    }
   },
 
   async loadGmailEmails() {
@@ -1037,6 +1118,13 @@ const emailSystem = {
         this.refreshEmails();
       });
     }
+
+    const testBtn = document.getElementById('test-apis-btn');
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        this.testAPIs();
+      });
+    }
   },
 
   switchFolder(folderType) {
@@ -1261,6 +1349,63 @@ const emailSystem = {
     
     if (inboxFolder) inboxFolder.textContent = unreadCount;
     if (starredFolder) starredFolder.textContent = starredCount;
+  },
+
+  testAPIs() {
+    console.clear();
+    console.log('=== TESTE DAS APIS DO GOOGLE (NOVA VERSÃO) ===');
+    
+    // Teste 1: Scripts carregados
+    console.log('1. Scripts carregados:');
+    console.log('   - gapi:', typeof gapi !== 'undefined' ? '✅ OK' : '❌ ERRO');
+    console.log('   - google:', typeof google !== 'undefined' ? '✅ OK' : '❌ ERRO');
+    console.log('   - google.accounts:', typeof google !== 'undefined' && google.accounts ? '✅ OK' : '❌ ERRO');
+    
+    // Teste 2: Configuração
+    console.log('2. Configuração:');
+    console.log('   - Client ID:', gmailConfig.clientId);
+    console.log('   - API Key:', gmailConfig.apiKey ? 'Configurada' : 'Não configurada');
+    
+    // Teste 3: URL atual
+    console.log('3. URL atual:', window.location.href);
+    
+    // Teste 4: Tentar carregar gapi (apenas client)
+    if (typeof gapi !== 'undefined') {
+      console.log('4. Testando gapi.load (client apenas)...');
+      try {
+        gapi.load('client', () => {
+          console.log('   ✅ gapi.load funcionou');
+          
+          // Teste 5: Tentar inicializar (sem auth2)
+          gapi.client.init({
+            apiKey: gmailConfig.apiKey,
+            discoveryDocs: [gmailConfig.discoveryDoc]
+          }).then(() => {
+            console.log('   ✅ gapi.client.init funcionou');
+            
+            // Teste 6: Google Identity API
+            if (typeof google !== 'undefined' && google.accounts) {
+              console.log('   ✅ Google Identity API disponível');
+              showSuccess('APIs', 'Todas as APIs estão funcionando! Pronto para conectar.');
+            } else {
+              console.log('   ❌ Google Identity API não disponível');
+              showWarning('APIs', 'gapi OK, mas Google Identity faltando');
+            }
+          }).catch((error) => {
+            console.log('   ❌ gapi.client.init falhou:', error);
+            showError('APIs', 'Erro na inicialização: ' + (error.error || error.message));
+          });
+        });
+      } catch (error) {
+        console.log('   ❌ gapi.load falhou:', error);
+        showError('APIs', 'Erro ao carregar APIs: ' + error.message);
+      }
+    } else {
+      console.log('4. ❌ gapi não está disponível');
+      showError('APIs', 'Google API não foi carregada. Verifique sua conexão.');
+    }
+    
+    showInfo('Teste de APIs', 'Executando testes... Verifique o console (F12)');
   }
 };
 
