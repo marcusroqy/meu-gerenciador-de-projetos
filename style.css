@@ -2932,29 +2932,71 @@ body.dark-mode .pwa-install-banner .dismiss-btn:hover {
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.email-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  transition: width 0.3s ease;
+  z-index: 1;
 }
 
 .email-item:hover {
-  background: var(--bg-hover);
+  background: linear-gradient(135deg, var(--bg-hover) 0%, rgba(124, 58, 237, 0.03) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+.email-item:hover::before {
+  width: 4px;
 }
 
 .email-item.unread {
-  background: rgba(79, 70, 229, 0.02);
-  border-left: 3px solid var(--accent-primary);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.02) 0%, rgba(124, 58, 237, 0.02) 100%);
+  border-left: 4px solid var(--accent-primary);
+  font-weight: 500;
+}
+
+.email-item.unread::before {
+  width: 4px;
+}
+
+.email-item > * {
+  position: relative;
+  z-index: 2;
 }
 
 .email-avatar {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: var(--accent-primary);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.email-item:hover .email-avatar {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
 }
 
 .email-info {
@@ -3035,14 +3077,14 @@ body.dark-mode .pwa-install-banner .dismiss-btn:hover {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .email-modal.show {

@@ -23,6 +23,39 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Erro ao carregar dados do usuário:', e);
       }
     }
+    
+    // Verificar também se há dados do Google
+    const googleUser = localStorage.getItem('user');
+    if (googleUser) {
+      try {
+        const userData = JSON.parse(googleUser);
+        if (userData.provider === 'google') {
+          user.name = userData.name || user.name;
+          user.avatar = userData.avatar || user.avatar;
+          user.email = userData.email;
+          user.provider = 'google';
+          
+          // Atualizar header com avatar do Google
+          updateUserHeaderWithGoogle(userData);
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar dados do Google:', e);
+      }
+    }
+  }
+
+  function updateUserHeaderWithGoogle(userData) {
+    const avatarElement = document.querySelector('#user-avatar');
+    const nameElement = document.querySelector('#user-name');
+    
+    if (avatarElement && userData.avatar) {
+      // Criar elemento de imagem para avatar do Google
+      avatarElement.innerHTML = `<img src="${userData.avatar}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+    }
+    
+    if (nameElement && userData.name) {
+      nameElement.textContent = userData.name;
+    }
   }
 
   // Carrega dados do usuário salvos
@@ -804,7 +837,8 @@ const emailSystem = {
       } else if (error.message.includes('invalid_client')) {
         errorMessage = 'Client ID inválido. Verifique a configuração no Google Cloud Console.';
       } else if (error.message.includes('redirect_uri_mismatch')) {
-        errorMessage = 'URL não autorizada. Configure as origens autorizadas no Google Cloud Console.';
+        const currentOrigin = window.location.origin;
+        errorMessage = `URL não autorizada (${currentOrigin}). Adicione esta URL no Google Cloud Console. Clique "Testar APIs" para ver as URLs exatas.`;
       }
       
       showError('Erro de Conexão', errorMessage);
@@ -1227,8 +1261,15 @@ const emailSystem = {
   },
 
   openEmail(emailId) {
-    const email = this.emails.find(e => e.id === emailId);
-    if (!email) return;
+    console.log('Tentando abrir email com ID:', emailId);
+    console.log('Emails disponíveis:', this.emails.map(e => ({id: e.id, subject: e.subject})));
+    
+    const email = this.emails.find(e => e.id == emailId); // Usar == para comparação flexível
+    if (!email) {
+      console.error('Email não encontrado:', emailId);
+      showError('Erro', 'Email não encontrado');
+      return;
+    }
 
     // Marcar como lido
     email.isRead = true;
@@ -1241,19 +1282,26 @@ const emailSystem = {
     modal.innerHTML = `
       <div class="email-modal-content">
         <div class="email-modal-header">
-          <div class="email-modal-title">${email.subject}</div>
+          <div class="email-modal-title">📧 ${email.subject}</div>
           <button class="email-modal-close">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="email-modal-body">
-          <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
-            <strong>De:</strong> ${email.sender} &lt;${email.senderEmail}&gt;<br>
-            <strong>Assunto:</strong> ${email.subject}<br>
-            <strong>Data:</strong> ${email.time}
+          <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(124, 58, 237, 0.03) 100%); border-radius: 12px; border-left: 4px solid var(--accent-primary);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div class="email-avatar" style="width: 32px; height: 32px; font-size: 14px;">${email.sender.charAt(0)}</div>
+              <div>
+                <div style="font-weight: 600; color: var(--text-primary);">${email.sender}</div>
+                <div style="color: var(--text-secondary); font-size: 14px;">${email.senderEmail || 'email@exemplo.com'}</div>
+              </div>
+            </div>
+            <div style="color: var(--text-secondary); font-size: 14px;">
+              <strong>Data:</strong> ${email.time}
+            </div>
           </div>
-          <div style="line-height: 1.6;">
-            ${email.content}
+          <div style="line-height: 1.7; color: var(--text-primary); font-size: 16px;">
+            ${email.content || email.preview || 'Conteúdo do email não disponível.'}
           </div>
         </div>
       </div>
@@ -1403,16 +1451,18 @@ const emailSystem = {
     console.log('3. URL atual:', window.location.href);
     
     // Teste 4: URLs para Google Cloud Console
+    const currentOrigin = window.location.origin;
     console.log('4. 🚨 CONFIGURAÇÃO NECESSÁRIA NO GOOGLE CLOUD:');
     console.log('   ⚠️ Se está dando erro redirect_uri_mismatch, adicione:');
-    console.log('   📋 JavaScript Origins:');
+    console.log('   📋 JavaScript Origins (adicione ESTA URL):');
+    console.log('      - ' + currentOrigin);
+    console.log('   📋 Redirect URIs (adicione ESTAS URLs):');
+    console.log('      - ' + currentOrigin);
+    console.log('      - ' + currentOrigin + '/');
+    console.log('   ');
+    console.log('   💡 URLs de desenvolvimento (se ainda não adicionou):');
     console.log('      - http://localhost:3000');
     console.log('      - http://127.0.0.1:3000');
-    console.log('   📋 Redirect URIs:');
-    console.log('      - http://localhost:3000');
-    console.log('      - http://localhost:3000/');
-    console.log('      - http://127.0.0.1:3000');
-    console.log('      - http://127.0.0.1:3000/');
     
     // Teste 5: Tentar carregar gapi (apenas client)
     if (typeof gapi !== 'undefined') {
