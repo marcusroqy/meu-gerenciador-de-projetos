@@ -1267,15 +1267,15 @@ const emailSystem = {
   getEmailsForFolder(folder) {
     switch(folder) {
       case 'inbox':
-        return this.emails.filter(e => e.folder === 'inbox');
+        return this.emails.filter(e => e.folder === 'inbox' || !e.folder);
       case 'sent':
-        return []; // Simulado - vazio por enquanto
+        return this.emails.filter(e => e.folder === 'sent');
       case 'starred':
         return this.emails.filter(e => e.isStarred);
       case 'drafts':
-        return []; // Simulado - vazio por enquanto
+        return this.emails.filter(e => e.folder === 'drafts');
       case 'trash':
-        return []; // Simulado - vazio por enquanto
+        return this.emails.filter(e => e.folder === 'trash');
       default:
         return this.emails;
     }
@@ -1360,8 +1360,24 @@ const emailSystem = {
               <strong>Data:</strong> ${email.time}
             </div>
           </div>
-          <div style="line-height: 1.7; color: var(--text-primary); font-size: 16px;">
+          <div style="line-height: 1.7; color: var(--text-primary); font-size: 16px; margin-bottom: 24px;">
             ${email.content || email.preview || 'Conteúdo do email não disponível.'}
+          </div>
+          
+          <!-- Botões de ação -->
+          <div class="email-action-buttons">
+            <button type="button" id="reply-email-btn" class="email-action-btn reply">
+              <span class="material-symbols-outlined">reply</span>
+              Responder
+            </button>
+            <button type="button" id="forward-email-btn" class="email-action-btn forward">
+              <span class="material-symbols-outlined">forward</span>
+              Encaminhar
+            </button>
+            <button type="button" id="delete-email-btn" class="email-action-btn delete">
+              <span class="material-symbols-outlined">delete</span>
+              Excluir
+            </button>
           </div>
         </div>
       </div>
@@ -1391,6 +1407,22 @@ const emailSystem = {
     modal.querySelector('.email-modal-close').addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeModal();
+    });
+
+    // Eventos dos botões
+    modal.querySelector('#reply-email-btn').addEventListener('click', () => {
+      closeModal();
+      this.replyToEmail(email);
+    });
+
+    modal.querySelector('#forward-email-btn').addEventListener('click', () => {
+      closeModal();
+      this.forwardEmail(email);
+    });
+
+    modal.querySelector('#delete-email-btn').addEventListener('click', () => {
+      closeModal();
+      this.deleteEmail(email.id);
     });
   },
 
@@ -1467,13 +1499,17 @@ const emailSystem = {
     this.openComposeModal();
   },
 
-  openComposeModal() {
+  openComposeModal(options = {}) {
+    const { to = '', subject = '', message = '', isReply = false, isForward = false } = options;
+    
+    const modalTitle = isReply ? '↩️ Responder Email' : isForward ? '↪️ Encaminhar Email' : '✉️ Novo Email';
+    
     const modal = document.createElement('div');
     modal.className = 'email-modal';
     modal.innerHTML = `
       <div class="email-modal-content">
         <div class="email-modal-header">
-          <div class="email-modal-title">✉️ Novo Email</div>
+          <div class="email-modal-title">${modalTitle}</div>
           <button class="email-modal-close">
             <span class="material-symbols-outlined">close</span>
           </button>
@@ -1482,17 +1518,17 @@ const emailSystem = {
           <form id="compose-form" style="display: flex; flex-direction: column; gap: 16px;">
             <div style="display: flex; flex-direction: column; gap: 8px;">
               <label style="font-weight: 500; color: var(--text-primary);">Para:</label>
-              <input type="email" id="compose-to" placeholder="destinatario@email.com" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;" required>
+              <input type="email" id="compose-to" placeholder="destinatario@email.com" value="${to}" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;" required>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 8px;">
               <label style="font-weight: 500; color: var(--text-primary);">Assunto:</label>
-              <input type="text" id="compose-subject" placeholder="Assunto do email" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;" required>
+              <input type="text" id="compose-subject" placeholder="Assunto do email" value="${subject}" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;" required>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 8px;">
               <label style="font-weight: 500; color: var(--text-primary);">Mensagem:</label>
-              <textarea id="compose-message" placeholder="Digite sua mensagem aqui..." style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px; min-height: 200px; resize: vertical; font-family: inherit;" required></textarea>
+              <textarea id="compose-message" placeholder="Digite sua mensagem aqui..." style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px; min-height: 200px; resize: vertical; font-family: inherit;" required>${message}</textarea>
             </div>
             
             <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
@@ -1545,10 +1581,17 @@ const emailSystem = {
     
     // Simular envio (em produção, usaria Gmail API)
     const sendBtn = document.getElementById('compose-send');
-    setButtonLoading(sendBtn, true);
+    if (sendBtn) {
+      setButtonLoading(sendBtn, true);
+    }
     
+    // Simular delay de envio
     setTimeout(() => {
-      setButtonLoading(sendBtn, false);
+      if (sendBtn) {
+        setButtonLoading(sendBtn, false);
+      }
+      
+      // Mostrar sucesso
       showSuccess('Email Enviado', `Email enviado para ${emailData.to} com sucesso!`);
       
       // Adicionar aos emails enviados (simulação)
@@ -1566,10 +1609,38 @@ const emailSystem = {
         folder: 'sent'
       };
       
+      // Adicionar à lista de emails
       this.emails.unshift(sentEmail);
       this.updateStats();
       
+      // Atualizar a visualização se estiver na pasta "Enviados"
+      if (this.currentFolder === 'sent') {
+        this.renderEmails();
+      }
+      
+      console.log('Email simulado enviado com sucesso:', sentEmail);
+      
     }, 2000);
+  },
+
+  replyToEmail(email) {
+    console.log('Respondendo ao email:', email);
+    this.openComposeModal({
+      to: email.senderEmail || email.sender,
+      subject: `Re: ${email.subject}`,
+      message: `\n\n--- Email Original ---\nDe: ${email.sender}\nData: ${email.time}\nAssunto: ${email.subject}\n\n${email.content || email.preview}\n\n--- Sua Resposta ---\n`,
+      isReply: true
+    });
+  },
+
+  forwardEmail(email) {
+    console.log('Encaminhando email:', email);
+    this.openComposeModal({
+      to: '',
+      subject: `Fwd: ${email.subject}`,
+      message: `\n\n--- Email Encaminhado ---\nDe: ${email.sender}\nData: ${email.time}\nAssunto: ${email.subject}\n\n${email.content || email.preview}\n\n--- Mensagem de Encaminhamento ---\n`,
+      isForward: true
+    });
   },
 
   async refreshEmails() {

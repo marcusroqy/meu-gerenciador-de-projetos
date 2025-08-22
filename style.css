@@ -3260,6 +3260,16 @@ body.dark-mode .pwa-install-banner .dismiss-btn:hover {
   .email-meta {
     min-width: 70px;
   }
+  
+  .email-action-buttons {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .email-action-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -3353,6 +3363,17 @@ body.dark-mode .pwa-install-banner .dismiss-btn:hover {
   .email-modal-body {
     padding: 16px;
   }
+  
+  .email-action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .email-action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -3418,6 +3439,69 @@ body.dark-mode .pwa-install-banner .dismiss-btn:hover {
 #view-email .main-content {
   width: 100%;
   max-width: none;
+}
+
+/* ===== BOTÕES DE AÇÃO DO EMAIL ===== */
+.email-action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.email-action-btn {
+  padding: 10px 20px;
+  border: 2px solid;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.email-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.email-action-btn.reply {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.email-action-btn.reply:hover {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.email-action-btn.forward {
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.email-action-btn.forward:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.email-action-btn.delete {
+  border-color: var(--accent-danger);
+  color: var(--accent-danger);
+}
+
+.email-action-btn.delete:hover {
+  background: var(--accent-danger);
+  color: white;
+}
+
+.email-action-btn .material-symbols-outlined {
+  font-size: 18px;
 }
 
 /* ==== FIM DO ARQUIVO CSS ==== */
