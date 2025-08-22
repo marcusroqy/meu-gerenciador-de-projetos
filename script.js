@@ -45,21 +45,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateUserHeaderWithGoogle(userData) {
-    const avatarElement = document.querySelector('#user-avatar');
-    const nameElement = document.querySelector('#user-name');
-    
-    if (avatarElement && userData.avatar) {
-      // Criar elemento de imagem para avatar do Google
-      avatarElement.innerHTML = `<img src="${userData.avatar}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
-    }
-    
-    if (nameElement && userData.name) {
-      nameElement.textContent = userData.name;
-    }
+    // Aguardar o DOM estar pronto
+    setTimeout(() => {
+      const avatarElement = document.querySelector('#user-avatar');
+      const nameElement = document.querySelector('#user-name');
+      
+      console.log('Atualizando header com dados do Google:', userData);
+      
+      if (avatarElement && userData.avatar) {
+        // Criar elemento de imagem para avatar do Google
+        avatarElement.innerHTML = `<img src="${userData.avatar}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-primary);">`;
+        console.log('Avatar do Google aplicado');
+      }
+      
+      if (nameElement && userData.name) {
+        nameElement.textContent = userData.name;
+        console.log('Nome do Google aplicado:', userData.name);
+      }
+    }, 100);
   }
 
   // Carrega dados do usuário salvos
   loadUserFromStorage();
+  
+  // Aplicar dados do Google quando DOM carregar
+  document.addEventListener('DOMContentLoaded', () => {
+    const googleUser = localStorage.getItem('user');
+    if (googleUser) {
+      try {
+        const userData = JSON.parse(googleUser);
+        if (userData.provider === 'google') {
+          updateUserHeaderWithGoogle(userData);
+        }
+      } catch (e) {
+        console.warn('Erro ao aplicar dados do Google no DOM:', e);
+      }
+    }
+  });
 
   // ---- MOBILE MENU FUNCTIONALITY ----
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -1238,7 +1260,7 @@ const emailSystem = {
     }
 
     emailList.innerHTML = emails.map(email => `
-      <div class="email-item ${!email.isRead ? 'unread' : ''}" onclick="emailSystem.openEmail(${email.id})">
+      <div class="email-item ${!email.isRead ? 'unread' : ''}" onclick="emailSystem.openEmail('${email.id}')">
         <div class="email-avatar">${email.sender.charAt(0)}</div>
         <div class="email-info">
           <div class="email-sender">${email.sender}</div>
@@ -1248,10 +1270,10 @@ const emailSystem = {
         <div class="email-meta">
           <div class="email-time">${email.time}</div>
           <div class="email-actions-mini">
-            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.toggleStar(${email.id})" title="${email.isStarred ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
+            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.toggleStar('${email.id}')" title="${email.isStarred ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
               <span class="material-symbols-outlined">${email.isStarred ? 'star' : 'star_border'}</span>
             </button>
-            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.deleteEmail(${email.id})" title="Excluir">
+            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.deleteEmail('${email.id}')" title="Excluir">
               <span class="material-symbols-outlined">delete</span>
             </button>
           </div>
@@ -1308,7 +1330,15 @@ const emailSystem = {
     `;
 
     document.body.appendChild(modal);
-    setTimeout(() => modal.classList.add('show'), 10);
+    
+    // Forçar exibição
+    modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    
+    setTimeout(() => {
+      modal.classList.add('show');
+      console.log('Modal exibido');
+    }, 10);
 
     // Fechar modal
     const closeModal = () => {
@@ -1373,7 +1403,7 @@ const emailSystem = {
     }
 
     emailList.innerHTML = filteredEmails.map(email => `
-      <div class="email-item ${!email.isRead ? 'unread' : ''}" onclick="emailSystem.openEmail(${email.id})">
+      <div class="email-item ${!email.isRead ? 'unread' : ''}" onclick="emailSystem.openEmail('${email.id}')">
         <div class="email-avatar">${email.sender.charAt(0)}</div>
         <div class="email-info">
           <div class="email-sender">${email.sender}</div>
@@ -1383,10 +1413,10 @@ const emailSystem = {
         <div class="email-meta">
           <div class="email-time">${email.time}</div>
           <div class="email-actions-mini">
-            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.toggleStar(${email.id})">
+            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.toggleStar('${email.id}')">
               <span class="material-symbols-outlined">${email.isStarred ? 'star' : 'star_border'}</span>
             </button>
-            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.deleteEmail(${email.id})">
+            <button class="email-action-mini" onclick="event.stopPropagation(); emailSystem.deleteEmail('${email.id}')">
               <span class="material-symbols-outlined">delete</span>
             </button>
           </div>
@@ -1396,7 +1426,112 @@ const emailSystem = {
   },
 
   composeEmail() {
-    showInfo('Novo Email', 'Funcionalidade de composição será implementada em breve!');
+    this.openComposeModal();
+  },
+
+  openComposeModal() {
+    const modal = document.createElement('div');
+    modal.className = 'email-modal';
+    modal.innerHTML = `
+      <div class="email-modal-content">
+        <div class="email-modal-header">
+          <div class="email-modal-title">✉️ Novo Email</div>
+          <button class="email-modal-close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="email-modal-body">
+          <form id="compose-form" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <label style="font-weight: 500; color: var(--text-primary);">Para:</label>
+              <input type="email" id="compose-to" placeholder="destinatario@email.com" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;" required>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <label style="font-weight: 500; color: var(--text-primary);">Assunto:</label>
+              <input type="text" id="compose-subject" placeholder="Assunto do email" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;" required>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <label style="font-weight: 500; color: var(--text-primary);">Mensagem:</label>
+              <textarea id="compose-message" placeholder="Digite sua mensagem aqui..." style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px; min-height: 200px; resize: vertical; font-family: inherit;" required></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
+              <button type="button" id="compose-cancel" style="padding: 12px 24px; border: 2px solid var(--border-color); background: transparent; color: var(--text-secondary); border-radius: 8px; cursor: pointer;">Cancelar</button>
+              <button type="submit" id="compose-send" style="padding: 12px 24px; border: none; background: var(--accent-primary); color: white; border-radius: 8px; cursor: pointer; font-weight: 500;">Enviar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    
+    setTimeout(() => {
+      modal.classList.add('show');
+    }, 10);
+
+    // Eventos
+    const closeModal = () => {
+      modal.classList.remove('show');
+      setTimeout(() => {
+        if (modal.parentNode) {
+          modal.parentNode.removeChild(modal);
+        }
+      }, 200);
+    };
+
+    modal.querySelector('.email-modal-close').addEventListener('click', closeModal);
+    modal.querySelector('#compose-cancel').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Enviar email
+    document.getElementById('compose-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.sendEmail({
+        to: document.getElementById('compose-to').value,
+        subject: document.getElementById('compose-subject').value,
+        message: document.getElementById('compose-message').value
+      });
+      closeModal();
+    });
+  },
+
+  sendEmail(emailData) {
+    console.log('Enviando email:', emailData);
+    
+    // Simular envio (em produção, usaria Gmail API)
+    const sendBtn = document.getElementById('compose-send');
+    setButtonLoading(sendBtn, true);
+    
+    setTimeout(() => {
+      setButtonLoading(sendBtn, false);
+      showSuccess('Email Enviado', `Email enviado para ${emailData.to} com sucesso!`);
+      
+      // Adicionar aos emails enviados (simulação)
+      const sentEmail = {
+        id: Date.now().toString(),
+        sender: this.userEmail || 'Você',
+        senderEmail: this.userEmail || 'voce@email.com',
+        subject: emailData.subject,
+        preview: emailData.message.substring(0, 100) + '...',
+        content: emailData.message,
+        time: new Date().toLocaleString('pt-BR'),
+        isRead: true,
+        isUnread: false,
+        isStarred: false,
+        folder: 'sent'
+      };
+      
+      this.emails.unshift(sentEmail);
+      this.updateStats();
+      
+    }, 2000);
   },
 
   async refreshEmails() {

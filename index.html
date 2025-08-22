@@ -7,8 +7,11 @@
   <meta name="referrer" content="no-referrer-when-downgrade">
   <title>Gerenciador de Projetos</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="alternate icon" href="favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <meta name="msapplication-TileColor" content="#4f46e5">
+  <meta name="theme-color" content="#4f46e5">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=2" />
@@ -305,15 +308,44 @@
     const supabaseUrl = 'https://dthqjhegmdkrzdpwrbtd.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0aHFqaGVnbWRrcnpkcHdyYnRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NjkzNzcsImV4cCI6MjA3MTI0NTM3N30.hINpekk5PL9d-E0QJdC82Cc94Poxpwo__2g9hTAC2Ac';
     window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-    // Guard de rota: se não autenticado, volta para login
-    window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      if (!session) window.location.href = 'login.html';
-    });
+    // Guard de rota: verificar autenticação (Supabase ou Google)
+    function checkAuthentication() {
+      // Verificar se há sessão do Supabase
+      window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          console.log('Usuário autenticado via Supabase');
+          return; // Está logado via Supabase
+        }
+        
+        // Verificar se há login do Google
+        const googleUser = localStorage.getItem('user');
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        
+        if (googleUser && isLoggedIn === 'true') {
+          console.log('Usuário autenticado via Google');
+          return; // Está logado via Google
+        }
+        
+        // Não está autenticado de forma alguma
+        console.log('Usuário não autenticado, redirecionando...');
+        window.location.href = 'login.html';
+      });
+    }
+    
+    checkAuthentication();
     // Botão sair
     window.addEventListener('DOMContentLoaded', () => {
       const btn = document.getElementById('sign-out-btn');
       if (btn) btn.onclick = async () => {
+        // Limpar sessão do Supabase
         await window.supabaseClient.auth.signOut();
+        
+        // Limpar dados do Google
+        localStorage.removeItem('user');
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('loginProvider');
+        
+        console.log('Logout realizado');
         window.location.href = 'login.html';
       };
     });
