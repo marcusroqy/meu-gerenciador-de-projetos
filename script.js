@@ -1205,7 +1205,8 @@ const emailSystem = {
         const emailPromises = data.messages.slice(0, 10).map(msg => this.getEmailDetails(msg.id));
         const emailDetails = await Promise.all(emailPromises);
         
-        this.emails = emailDetails.filter(email => email !== null);
+        // Filtrar emails válidos e corrigir encoding
+        this.emails = emailDetails.filter(email => email !== null).map(email => this.fixEmailEncoding(email));
         this.renderEmails();
         showSuccess('Gmail', `${this.emails.length} emails carregados com sucesso!`);
       } else {
@@ -1222,6 +1223,37 @@ const emailSystem = {
       if (error.message.includes('401') || error.message.includes('Token')) {
         this.disconnectGmail();
       }
+    }
+  },
+
+  fixEmailEncoding(email) {
+    if (!email) return email;
+    
+    try {
+      // Corrige o subject se necessário
+      if (email.subject) {
+        email.subject = this.decodeUTF8(email.subject);
+      }
+      
+      // Corrige o sender se necessário
+      if (email.sender) {
+        email.sender = this.decodeUTF8(email.sender);
+      }
+      
+      // Corrige o content se necessário
+      if (email.content) {
+        email.content = this.decodeUTF8(email.content);
+      }
+      
+      // Recria o preview com o conteúdo corrigido
+      if (email.content) {
+        email.preview = this.createPreview(email.content);
+      }
+      
+      return email;
+    } catch (error) {
+      console.warn('Erro ao corrigir encoding do email:', error);
+      return email;
     }
   },
 
@@ -1285,31 +1317,78 @@ const emailSystem = {
   },
 
   extractEmailContent(payload) {
-    if (payload.parts) {
-      for (const part of payload.parts) {
-        if (part.mimeType === 'text/html' && part.body.data) {
-          return atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+    try {
+      if (payload.parts) {
+        for (const part of payload.parts) {
+          if (part.mimeType === 'text/html' && part.body.data) {
+            const base64Data = part.body.data.replace(/-/g, '+').replace(/_/g, '/');
+            const decodedData = atob(base64Data);
+            return this.decodeUTF8(decodedData);
+          }
+          if (part.mimeType === 'text/plain' && part.body.data) {
+            const base64Data = part.body.data.replace(/-/g, '+').replace(/_/g, '/');
+            const decodedData = atob(base64Data);
+            const plainText = this.decodeUTF8(decodedData);
+            return plainText.replace(/\n/g, '<br>');
+          }
         }
-        if (part.mimeType === 'text/plain' && part.body.data) {
-          const plainText = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+      } else if (payload.body.data) {
+        const base64Data = payload.body.data.replace(/-/g, '+').replace(/_/g, '/');
+        const decodedData = atob(base64Data);
+        if (payload.mimeType === 'text/html') {
+          return this.decodeUTF8(decodedData);
+        } else {
+          const plainText = this.decodeUTF8(decodedData);
           return plainText.replace(/\n/g, '<br>');
         }
       }
-    } else if (payload.body.data) {
-      if (payload.mimeType === 'text/html') {
-        return atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-      } else {
-        const plainText = atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-        return plainText.replace(/\n/g, '<br>');
-      }
+    } catch (error) {
+      console.error('Erro ao decodificar conteúdo do email:', error);
     }
     return 'Conteúdo não disponível';
   },
 
+  decodeUTF8(str) {
+    try {
+      // Tenta decodificar como UTF-8
+      return decodeURIComponent(escape(str));
+    } catch (error) {
+      try {
+        // Fallback: tenta TextDecoder se disponível
+        if (typeof TextDecoder !== 'undefined') {
+          const decoder = new TextDecoder('utf-8');
+          const encoder = new TextEncoder();
+          const bytes = encoder.encode(str);
+          return decoder.decode(bytes);
+        }
+      } catch (e) {
+        console.warn('Erro na decodificação UTF-8:', e);
+      }
+      // Se tudo falhar, retorna a string original
+      return str;
+    }
+  },
+
   createPreview(content) {
-    // Remove HTML tags e pega primeiros 120 caracteres
-    const textContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    return textContent.length > 120 ? textContent.substring(0, 120) + '...' : textContent;
+    try {
+      // Remove HTML tags e normaliza espaços
+      let textContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+      
+      // Remove caracteres de controle e normaliza
+      textContent = textContent.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+      
+      // Corrige encoding se necessário
+      try {
+        textContent = decodeURIComponent(escape(textContent));
+      } catch (e) {
+        // Se falhar, mantém o texto original
+      }
+      
+      return textContent.length > 120 ? textContent.substring(0, 120) + '...' : textContent;
+    } catch (error) {
+      console.warn('Erro ao criar preview:', error);
+      return 'Preview não disponível';
+    }
   },
 
   formatDate(dateString) {

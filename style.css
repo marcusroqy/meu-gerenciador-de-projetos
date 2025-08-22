@@ -173,42 +173,42 @@ body {
 
 /* ==== HEADER MODERNO ==== */
 .app-header {
-  position: fixed;
-  top: 0;
-  left: var(--sidebar-width);
-  width: calc(100vw - var(--sidebar-width));
-  height: var(--header-height);
-  background: var(--bg-content);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  z-index: 1001;
-  padding: 0;
-  box-sizing: border-box;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  position: fixed !important;
+  top: 0 !important;
+  left: var(--sidebar-width) !important;
+  width: calc(100vw - var(--sidebar-width)) !important;
+  height: var(--header-height) !important;
+  background: var(--bg-content) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  z-index: 1001 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08) !important;
 }
 
 .header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-left: 20px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding-left: 20px !important;
 }
 
 .header-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 18px;
-  background: linear-gradient(135deg, var(--accent-primary), #6366f1);
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  margin-left: 0;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 18px !important;
+  background: linear-gradient(135deg, var(--accent-primary), #6366f1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  margin-left: 0 !important;
 }
 
 .header-brand:hover {
@@ -242,11 +242,11 @@ body {
 }
 
 .header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-right: 40px;
-  margin-left: auto;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding-right: 40px !important;
+  margin-left: auto !important;
 }
 
 #theme-toggle-btn {
@@ -1078,7 +1078,7 @@ button:hover, .save-btn:hover, .add-btn:hover {
   
   .header-brand {
     padding: 6px 12px;
-    margin-left: 8px;
+    margin-left: 0;
   }
   
   .header-title {
