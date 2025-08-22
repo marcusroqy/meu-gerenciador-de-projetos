@@ -18,14 +18,24 @@
 </head>
 <body>
   <header class="app-header">
-    <button class="mobile-menu-btn" id="mobile-menu-btn" title="Menu">
-      <span class="material-symbols-outlined">menu</span>
-    </button>
-    <span class="header-title">Gerenciador de Projetos</span>
-    <button id="theme-toggle-btn" title="Trocar tema">
-      <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
-      <span class="theme-label">Tema</span>
-    </button>
+    <div class="header-left">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" title="Menu">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="header-brand">
+        <div class="brand-icon">
+          <span class="material-symbols-outlined">dashboard</span>
+        </div>
+        <span class="header-title">Gerenciador de Projetos</span>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <button id="theme-toggle-btn" title="Trocar tema">
+        <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+        <span class="theme-label">Tema</span>
+      </button>
+    </div>
   </header>
   <div class="app-main">
     <aside class="projects-sidebar">

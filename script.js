@@ -215,15 +215,38 @@ document.addEventListener('DOMContentLoaded', () => {
     setButtonLoading(submitBtn, true);
     
     try {
-      const { data, error } = await supabase.from('projects').insert({ name, user_id: currentUser.id }).select().single();
-      if(error) throw error;
-      
-      projects.unshift(data);
-      activeProjectId = data.id;
-      renderProjects();
-      selectProject(data.id);
-      document.getElementById('project-input').value="";
-      showSuccess('Projeto Criado', `O projeto "${name}" foi criado com sucesso!`);
+      if (currentUser.provider === 'google') {
+        // Para usuários Google, salvar no localStorage
+        const newProject = {
+          id: Date.now().toString(),
+          name: name,
+          user_id: currentUser.id,
+          created_at: new Date().toISOString()
+        };
+        
+        projects.unshift(newProject);
+        activeProjectId = newProject.id;
+        
+        // Salvar no localStorage
+        localStorage.setItem(`projects_${currentUser.email}`, JSON.stringify(projects));
+        console.log('Projeto salvo no localStorage:', newProject);
+        
+        renderProjects();
+        selectProject(newProject.id);
+        document.getElementById('project-input').value="";
+        showSuccess('Projeto Criado', `O projeto "${name}" foi criado com sucesso!`);
+      } else {
+        // Para usuários Supabase, salvar no banco
+        const { data, error } = await supabase.from('projects').insert({ name, user_id: currentUser.id }).select().single();
+        if(error) throw error;
+        
+        projects.unshift(data);
+        activeProjectId = data.id;
+        renderProjects();
+        selectProject(data.id);
+        document.getElementById('project-input').value="";
+        showSuccess('Projeto Criado', `O projeto "${name}" foi criado com sucesso!`);
+      }
     } catch (error) {
       showError('Erro', 'Não foi possível criar o projeto. Tente novamente.');
     } finally {
@@ -301,7 +324,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const task = tasks.find(t=>t.id===dragTaskId);
         if(task && task.status!==status){
           task.status = status;
-          await supabase.from('tasks').update({ status }).eq('id', task.id);
+          
+          if (currentUser.provider === 'google') {
+            // Para usuários Google, salvar no localStorage
+            localStorage.setItem(`tasks_${currentUser.email}`, JSON.stringify(tasks));
+            console.log('Status da tarefa atualizado no localStorage:', task.id, status);
+          } else {
+            // Para usuários Supabase, atualizar no banco
+            await supabase.from('tasks').update({ status }).eq('id', task.id);
+          }
+          
           renderTasks();
         }
         dndClear();
@@ -337,16 +369,57 @@ document.addEventListener('DOMContentLoaded', () => {
     setButtonLoading(submitBtn, true);
     
     try {
-      const payload = { user_id: currentUser.id, project_id: activeProjectId, text, status:'A Fazer', priority, comments:[], due_date: dueDate||null, desc: "" };
-      const { data, error } = await supabase.from('tasks').insert(payload).select().single();
-      if(error) throw error;
-      
-      tasks.push({ id:data.id, projectId:data.project_id, text:data.text, status:data.status, priority:data.priority, comments:data.comments||[], createdAt:data.created_at, dueDate:data.due_date||"", desc:data.desc||"" });
-      document.getElementById('task-input').value="";
-      document.getElementById('task-due-date').value="";
-      renderTasks();
-      if(typeof renderDashboard === "function") renderDashboard();
-      showSuccess('Tarefa Criada', `A tarefa "${text}" foi adicionada com sucesso!`);
+      if (currentUser.provider === 'google') {
+        // Para usuários Google, salvar no localStorage
+        const newTask = {
+          id: Date.now().toString(),
+          user_id: currentUser.id,
+          project_id: activeProjectId,
+          text: text,
+          status: 'A Fazer',
+          priority: priority,
+          comments: [],
+          due_date: dueDate || null,
+          desc: "",
+          created_at: new Date().toISOString()
+        };
+        
+        const taskForArray = { 
+          id: newTask.id, 
+          projectId: newTask.project_id, 
+          text: newTask.text, 
+          status: newTask.status, 
+          priority: newTask.priority, 
+          comments: newTask.comments, 
+          createdAt: newTask.created_at, 
+          dueDate: newTask.due_date || "", 
+          desc: newTask.desc 
+        };
+        
+        tasks.push(taskForArray);
+        
+        // Salvar no localStorage
+        localStorage.setItem(`tasks_${currentUser.email}`, JSON.stringify(tasks));
+        console.log('Tarefa salva no localStorage:', newTask);
+        
+        document.getElementById('task-input').value="";
+        document.getElementById('task-due-date').value="";
+        renderTasks();
+        if(typeof renderDashboard === "function") renderDashboard();
+        showSuccess('Tarefa Criada', `A tarefa "${text}" foi adicionada com sucesso!`);
+      } else {
+        // Para usuários Supabase, salvar no banco
+        const payload = { user_id: currentUser.id, project_id: activeProjectId, text, status:'A Fazer', priority, comments:[], due_date: dueDate||null, desc: "" };
+        const { data, error } = await supabase.from('tasks').insert(payload).select().single();
+        if(error) throw error;
+        
+        tasks.push({ id:data.id, projectId:data.project_id, text:data.text, status:data.status, priority:data.priority, comments:data.comments||[], createdAt:data.created_at, dueDate:data.due_date||"", desc:data.desc||"" });
+        document.getElementById('task-input').value="";
+        document.getElementById('task-due-date').value="";
+        renderTasks();
+        if(typeof renderDashboard === "function") renderDashboard();
+        showSuccess('Tarefa Criada', `A tarefa "${text}" foi adicionada com sucesso!`);
+      }
     } catch (error) {
       showError('Erro', 'Não foi possível criar a tarefa. Tente novamente.');
     } finally {
@@ -400,13 +473,22 @@ document.addEventListener('DOMContentLoaded', () => {
         task.priority = modal.querySelector('#modal-task-priority').value;
         task.dueDate = modal.querySelector('#modal-task-duedate').value;
         task.desc = modal.querySelector('#modal-task-desc').value;
-        await supabase.from('tasks').update({
-          text: task.text,
-          priority: task.priority,
-          due_date: task.dueDate || null,
-          desc: task.desc,
-          comments: task.comments
-        }).eq('id', task.id);
+        
+        if (currentUser.provider === 'google') {
+          // Para usuários Google, salvar no localStorage
+          localStorage.setItem(`tasks_${currentUser.email}`, JSON.stringify(tasks));
+          console.log('Tarefa atualizada no localStorage:', task.id);
+        } else {
+          // Para usuários Supabase, atualizar no banco
+          await supabase.from('tasks').update({
+            text: task.text,
+            priority: task.priority,
+            due_date: task.dueDate || null,
+            desc: task.desc,
+            comments: task.comments
+          }).eq('id', task.id);
+        }
+        
         modal.remove();
         renderTasks();
       };
@@ -512,14 +594,93 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', handleResize);
 
   async function loadData(){
+    // Verificar se há sessão do Supabase
     const { data: { session } } = await supabase.auth.getSession();
-    currentUser = session?.user || null;
+    
+    if (session?.user) {
+      // Usuário logado via Supabase
+      currentUser = session.user;
+      console.log('Usuário carregado via Supabase:', currentUser);
+    } else {
+      // Verificar se há login do Google
+      const googleUser = localStorage.getItem('user');
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      
+      if (googleUser && isLoggedIn === 'true') {
+        try {
+          const userData = JSON.parse(googleUser);
+          // Criar usuário simulado para Google
+          currentUser = {
+            id: userData.email || 'google_user_' + Date.now(),
+            email: userData.email,
+            name: userData.name,
+            provider: 'google'
+          };
+          console.log('Usuário Google simulado criado:', currentUser);
+        } catch (error) {
+          console.error('Erro ao processar dados do Google:', error);
+          return;
+        }
+      } else {
+        // Nenhum usuário logado
+        console.log('Nenhum usuário autenticado');
+        return;
+      }
+    }
+    
     if(!currentUser) return;
+    
+    // Carregar dados do usuário
+    try {
+      if (currentUser.provider === 'google') {
+        // Para usuários Google, usar localStorage para projetos e tarefas
+        await loadGoogleUserData();
+      } else {
+        // Para usuários Supabase, carregar do banco
+        await loadSupabaseUserData();
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+    }
+  }
+
+  async function loadSupabaseUserData() {
     const { data: projData } = await supabase.from('projects').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
     projects = projData || [];
     if(!activeProjectId && projects.length) activeProjectId = projects[0].id;
     const { data: taskData } = await supabase.from('tasks').select('*').eq('user_id', currentUser.id);
     tasks = (taskData||[]).map(r=>({ id:r.id, projectId:r.project_id, text:r.text, status:r.status, priority:r.priority, comments:r.comments||[], createdAt:r.created_at, dueDate:r.due_date||"", desc:r.desc||"" }));
+    renderProjects();
+    if(activeProjectId) selectProject(activeProjectId);
+    if(typeof renderDashboard === "function") renderDashboard();
+  }
+
+  async function loadGoogleUserData() {
+    // Carregar projetos e tarefas do localStorage para usuários Google
+    const savedProjects = localStorage.getItem(`projects_${currentUser.email}`);
+    const savedTasks = localStorage.getItem(`tasks_${currentUser.email}`);
+    
+    if (savedProjects) {
+      try {
+        projects = JSON.parse(savedProjects);
+        console.log('Projetos carregados do localStorage:', projects);
+      } catch (error) {
+        console.error('Erro ao carregar projetos:', error);
+        projects = [];
+      }
+    }
+    
+    if (savedTasks) {
+      try {
+        tasks = JSON.parse(savedTasks);
+        console.log('Tarefas carregadas do localStorage:', tasks);
+      } catch (error) {
+        console.error('Erro ao carregar tarefas:', error);
+        tasks = [];
+      }
+    }
+    
+    if(!activeProjectId && projects.length) activeProjectId = projects[0].id;
     renderProjects();
     if(activeProjectId) selectProject(activeProjectId);
     if(typeof renderDashboard === "function") renderDashboard();
