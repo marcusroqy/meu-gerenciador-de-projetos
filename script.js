@@ -847,21 +847,37 @@ const emailSystem = {
       const client = google.accounts.oauth2.initTokenClient({
         client_id: gmailConfig.clientId,
         scope: gmailConfig.scopes,
+        prompt: '',
         callback: (response) => {
+          console.log('Resposta do OAuth:', response);
+          
           if (response.error) {
+            console.error('Erro OAuth:', response.error);
             reject(new Error(response.error));
             return;
           }
           
+          if (!response.access_token) {
+            console.error('Token não recebido');
+            reject(new Error('Token de acesso não recebido'));
+            return;
+          }
+          
           this.accessToken = response.access_token;
+          console.log('Token recebido com sucesso');
           
           // Buscar info do usuário
           this.getUserInfo().then(() => {
             // Salvar no localStorage
             localStorage.setItem('gmail_access_token', this.accessToken);
             localStorage.setItem('gmail_user_email', this.userEmail);
+            console.log('Autenticação completa!');
             resolve();
           }).catch(reject);
+        },
+        error_callback: (error) => {
+          console.error('Erro no callback:', error);
+          reject(new Error('Erro na autenticação: ' + error.message));
         }
       });
 
