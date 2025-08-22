@@ -848,9 +848,10 @@ const emailSystem = {
         const client = google.accounts.oauth2.initTokenClient({
           client_id: gmailConfig.clientId,
           scope: gmailConfig.scopes,
-          prompt: 'consent',
+          prompt: 'select_account',
           include_granted_scopes: true,
           state: Math.random().toString(36).substring(2, 15),
+          ux_mode: 'popup',
           callback: (response) => {
             console.log('📥 Resposta do OAuth recebida:', response);
             
@@ -1385,7 +1386,7 @@ const emailSystem = {
 
   testAPIs() {
     console.clear();
-    console.log('=== TESTE DAS APIS DO GOOGLE (NOVA VERSÃO) ===');
+    console.log('=== TESTE DAS APIS DO GOOGLE + CONFIGURAÇÃO ===');
     
     // Teste 1: Scripts carregados
     console.log('1. Scripts carregados:');
@@ -1401,26 +1402,37 @@ const emailSystem = {
     // Teste 3: URL atual
     console.log('3. URL atual:', window.location.href);
     
-    // Teste 4: Tentar carregar gapi (apenas client)
+    // Teste 4: URLs para Google Cloud Console
+    console.log('4. 🚨 CONFIGURAÇÃO NECESSÁRIA NO GOOGLE CLOUD:');
+    console.log('   ⚠️ Se está dando erro redirect_uri_mismatch, adicione:');
+    console.log('   📋 JavaScript Origins:');
+    console.log('      - http://localhost:3000');
+    console.log('      - http://127.0.0.1:3000');
+    console.log('   📋 Redirect URIs:');
+    console.log('      - http://localhost:3000');
+    console.log('      - http://localhost:3000/');
+    console.log('      - http://127.0.0.1:3000');
+    console.log('      - http://127.0.0.1:3000/');
+    
+    // Teste 5: Tentar carregar gapi (apenas client)
     if (typeof gapi !== 'undefined') {
-      console.log('4. Testando gapi.load (client apenas)...');
+      console.log('5. Testando gapi.load...');
       try {
         gapi.load('client', () => {
           console.log('   ✅ gapi.load funcionou');
           
-          // Teste 5: Tentar inicializar (sem auth2)
+          // Teste 6: Tentar inicializar
           gapi.client.init({
             apiKey: gmailConfig.apiKey,
             discoveryDocs: [gmailConfig.discoveryDoc]
           }).then(() => {
             console.log('   ✅ gapi.client.init funcionou');
             
-            // Teste 6: Google Identity API
+            // Teste 7: Google Identity API
             if (typeof google !== 'undefined' && google.accounts) {
               console.log('   ✅ Google Identity API disponível');
-              showSuccess('APIs', 'Todas as APIs estão funcionando! Pronto para conectar.');
+              showSuccess('APIs OK', 'APIs funcionando! Configure as URLs no Google Cloud Console.');
             } else {
-              console.log('   ❌ Google Identity API não disponível');
               showWarning('APIs', 'gapi OK, mas Google Identity faltando');
             }
           }).catch((error) => {
@@ -1433,11 +1445,11 @@ const emailSystem = {
         showError('APIs', 'Erro ao carregar APIs: ' + error.message);
       }
     } else {
-      console.log('4. ❌ gapi não está disponível');
+      console.log('5. ❌ gapi não está disponível');
       showError('APIs', 'Google API não foi carregada. Verifique sua conexão.');
     }
     
-    showInfo('Teste de APIs', 'Executando testes... Verifique o console (F12)');
+    showInfo('Teste de APIs', 'Verifique o console para URLs exatas do Google Cloud!');
   }
 };
 
