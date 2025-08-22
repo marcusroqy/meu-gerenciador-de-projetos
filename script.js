@@ -82,6 +82,44 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+  
+  // ---- FUNÇÃO PARA MOSTRAR VISUALIZAÇÕES ----
+  function showView(viewId) {
+    // Esconder todas as visualizações
+    document.querySelectorAll('.main-view').forEach(v => v.classList.add('view-hidden'));
+    
+    // Mostrar a visualização solicitada
+    const targetView = document.getElementById(viewId);
+    if (targetView) {
+      targetView.classList.remove('view-hidden');
+      
+      // Atualizar navegação ativa
+      document.querySelectorAll('.main-nav .nav-item').forEach(item => item.classList.remove('active'));
+      const navItem = document.querySelector(`[data-view="${viewId.replace('view-', '')}"]`);
+      if (navItem) {
+        navItem.parentElement.classList.add('active');
+      }
+      
+      // Executar funções específicas baseadas na visualização
+      if (viewId === 'view-projects') {
+        renderTasks();
+      } else if (viewId === 'view-dashboard') {
+        renderDashboard();
+      } else if (viewId === 'view-email') {
+        // Verificar se Gmail está conectado
+        if (window.emailSystem && window.emailSystem.isConnected) {
+          window.loadGmailEmails();
+        }
+      }
+      
+      console.log('Visualização alterada para:', viewId);
+    } else {
+      console.warn('Visualização não encontrada:', viewId);
+    }
+  }
+  
+  // Tornar função global para uso no index.html
+  window.showView = showView;
 
   // ---- MOBILE MENU FUNCTIONALITY ----
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');

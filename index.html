@@ -314,6 +314,7 @@
       window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           console.log('Usuário autenticado via Supabase');
+          restoreLastView(); // Restaurar última visualização
           return; // Está logado via Supabase
         }
         
@@ -323,6 +324,7 @@
         
         if (googleUser && isLoggedIn === 'true') {
           console.log('Usuário autenticado via Google');
+          restoreLastView(); // Restaurar última visualização
           return; // Está logado via Google
         }
         
@@ -338,13 +340,73 @@
         
         if (!googleUser || isLoggedIn !== 'true') {
           window.location.replace('login.html');
+        } else {
+          restoreLastView(); // Restaurar última visualização
         }
       });
+    }
+    
+    // Função para salvar a visualização atual
+    function saveCurrentView() {
+      const currentView = document.querySelector('.main-view:not(.view-hidden)');
+      if (currentView) {
+        const viewId = currentView.id;
+        // Não salvar se for dashboard (padrão)
+        if (viewId !== 'view-dashboard') {
+          localStorage.setItem('lastView', viewId);
+          console.log('Visualização salva:', viewId);
+        }
+      }
+    }
+    
+    // Função para restaurar a última visualização
+    function restoreLastView() {
+      const lastView = localStorage.getItem('lastView');
+      if (lastView && lastView !== 'view-dashboard') {
+        console.log('Restaurando visualização:', lastView);
+        // Aguardar um pouco para o DOM estar pronto
+        setTimeout(() => {
+          if (window.showView) {
+            window.showView(lastView);
+          } else {
+            // Fallback se showView não estiver disponível
+            document.querySelectorAll('.main-view').forEach(v => v.classList.add('view-hidden'));
+            const targetView = document.getElementById(lastView);
+            if (targetView) {
+              targetView.classList.remove('view-hidden');
+              console.log('Visualização restaurada via fallback:', lastView);
+            }
+          }
+        }, 200);
+      }
     }
     // Botão sair e verificação de autenticação
     window.addEventListener('DOMContentLoaded', () => {
       // Verificar autenticação apenas uma vez quando a página carrega
       checkAuthentication();
+      
+      // Listener para salvar visualização quando mudar
+      const observer = new MutationObserver(() => {
+        saveCurrentView();
+      });
+      
+      // Observar mudanças no DOM para detectar mudanças de visualização
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class']
+      });
+      
+      // Listener para links de navegação
+      document.querySelectorAll('.main-nav .nav-item > a[data-view]').forEach(link => {
+        link.addEventListener('click', () => {
+          // Salvar visualização após um pequeno delay para garantir que a mudança aconteceu
+          setTimeout(() => {
+            saveCurrentView();
+          }, 100);
+        });
+      });
       
       const btn = document.getElementById('sign-out-btn');
       if (btn) btn.onclick = async () => {
