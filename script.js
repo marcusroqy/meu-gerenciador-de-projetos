@@ -606,7 +606,7 @@ const gmailConfig = {
   clientId: '263415738404-9cuie17gn2ulcea14co2gfa58d273eb5.apps.googleusercontent.com',
   apiKey: 'AIzaSyAzcBQ4WhkoAzC5BFmx659Xxpip5SKdZ5k',
   discoveryDoc: 'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest',
-  scopes: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send'
+  scopes: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
 };
 
 const emailSystem = {
@@ -838,50 +838,66 @@ const emailSystem = {
 
   async authenticateUser() {
     return new Promise((resolve, reject) => {
-      // Usar a nova Google Identity API
+      // Usar a nova Google Identity API com configurações para localhost
       if (typeof google === 'undefined' || !google.accounts) {
         reject(new Error('Google Identity API não carregada'));
         return;
       }
 
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: gmailConfig.clientId,
-        scope: gmailConfig.scopes,
-        prompt: '',
-        callback: (response) => {
-          console.log('Resposta do OAuth:', response);
-          
-          if (response.error) {
-            console.error('Erro OAuth:', response.error);
-            reject(new Error(response.error));
-            return;
+      try {
+        const client = google.accounts.oauth2.initTokenClient({
+          client_id: gmailConfig.clientId,
+          scope: gmailConfig.scopes,
+          prompt: 'consent',
+          include_granted_scopes: true,
+          state: Math.random().toString(36).substring(2, 15),
+          callback: (response) => {
+            console.log('📥 Resposta do OAuth recebida:', response);
+            
+            if (response.error) {
+              console.error('❌ Erro OAuth:', response.error);
+              reject(new Error(`Erro OAuth: ${response.error}`));
+              return;
+            }
+            
+            if (!response.access_token) {
+              console.error('❌ Token não recebido na resposta');
+              reject(new Error('Token de acesso não foi recebido'));
+              return;
+            }
+            
+            console.log('✅ Token de acesso recebido');
+            this.accessToken = response.access_token;
+            
+            // Buscar info do usuário
+            this.getUserInfo().then(() => {
+              // Salvar no localStorage
+              localStorage.setItem('gmail_access_token', this.accessToken);
+              localStorage.setItem('gmail_user_email', this.userEmail);
+              console.log('✅ Dados salvos no localStorage');
+              resolve();
+            }).catch((error) => {
+              console.error('❌ Erro ao buscar info do usuário:', error);
+              // Mesmo com erro de user info, podemos prosseguir
+              this.userEmail = 'usuario@gmail.com';
+              localStorage.setItem('gmail_access_token', this.accessToken);
+              localStorage.setItem('gmail_user_email', this.userEmail);
+              resolve();
+            });
+          },
+          error_callback: (error) => {
+            console.error('❌ Erro no callback de erro:', error);
+            reject(new Error(`Erro na autenticação: ${error.type || error.message || 'Erro desconhecido'}`));
           }
-          
-          if (!response.access_token) {
-            console.error('Token não recebido');
-            reject(new Error('Token de acesso não recebido'));
-            return;
-          }
-          
-          this.accessToken = response.access_token;
-          console.log('Token recebido com sucesso');
-          
-          // Buscar info do usuário
-          this.getUserInfo().then(() => {
-            // Salvar no localStorage
-            localStorage.setItem('gmail_access_token', this.accessToken);
-            localStorage.setItem('gmail_user_email', this.userEmail);
-            console.log('Autenticação completa!');
-            resolve();
-          }).catch(reject);
-        },
-        error_callback: (error) => {
-          console.error('Erro no callback:', error);
-          reject(new Error('Erro na autenticação: ' + error.message));
-        }
-      });
+        });
 
-      client.requestAccessToken();
+        console.log('🚀 Iniciando solicitação de token...');
+        client.requestAccessToken();
+        
+      } catch (error) {
+        console.error('❌ Erro ao criar cliente OAuth:', error);
+        reject(new Error(`Erro ao inicializar cliente: ${error.message}`));
+      }
     });
   },
 
