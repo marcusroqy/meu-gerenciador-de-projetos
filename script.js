@@ -7,6 +7,27 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeProjectId = null;
   let user = {name:"Usuário", avatar:""};
 
+  // ---- PERSISTÊNCIA DO USUÁRIO ----
+  function saveUserToStorage() {
+    localStorage.setItem('userData', JSON.stringify(user));
+  }
+
+  function loadUserFromStorage() {
+    const savedUser = localStorage.getItem('userData');
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        user.name = parsedUser.name || "Usuário";
+        user.avatar = parsedUser.avatar || "";
+      } catch (e) {
+        console.warn('Erro ao carregar dados do usuário:', e);
+      }
+    }
+  }
+
+  // Carrega dados do usuário salvos
+  loadUserFromStorage();
+
   // ---- MOBILE MENU FUNCTIONALITY ----
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const sidebar = document.querySelector('.projects-sidebar');
@@ -310,11 +331,22 @@ document.addEventListener('DOMContentLoaded', () => {
     avatarEl.style.backgroundSize=user.avatar?"cover":"";
     document.getElementById('user-name').textContent = user.name;
   }
+
+  function updateUserForm() {
+    // Atualiza os campos do formulário com os dados salvos
+    document.getElementById('profile-name').value = user.name;
+    if (user.avatar) {
+      document.getElementById('profile-avatar-img').src = user.avatar;
+    }
+  }
+
   updateUserHeader();
+  updateUserForm();
   document.getElementById('user-settings-form').onsubmit = function(e){
     e.preventDefault();
     user.name = document.getElementById('profile-name').value || "Usuário";
     user.avatar = document.getElementById("profile-avatar-img").getAttribute("src") || "";
+    saveUserToStorage(); // Salva os dados no localStorage
     updateUserHeader();
     document.querySelectorAll('.main-view').forEach(v=>v.classList.add('view-hidden'));
     document.getElementById('view-home').classList.remove('view-hidden');
