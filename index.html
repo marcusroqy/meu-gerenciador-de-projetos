@@ -328,25 +328,51 @@
         
         // Não está autenticado de forma alguma
         console.log('Usuário não autenticado, redirecionando...');
-        window.location.href = 'login.html';
+        // Usar replace para evitar problemas de histórico
+        window.location.replace('login.html');
+      }).catch((error) => {
+        console.log('Erro ao verificar autenticação:', error);
+        // Em caso de erro, verificar apenas localStorage
+        const googleUser = localStorage.getItem('user');
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        
+        if (!googleUser || isLoggedIn !== 'true') {
+          window.location.replace('login.html');
+        }
       });
     }
-    
-    checkAuthentication();
-    // Botão sair
+    // Botão sair e verificação de autenticação
     window.addEventListener('DOMContentLoaded', () => {
+      // Verificar autenticação apenas uma vez quando a página carrega
+      checkAuthentication();
+      
       const btn = document.getElementById('sign-out-btn');
       if (btn) btn.onclick = async () => {
-        // Limpar sessão do Supabase
-        await window.supabaseClient.auth.signOut();
+        console.log('Iniciando logout...');
+        
+        try {
+          // Limpar sessão do Supabase
+          await window.supabaseClient.auth.signOut();
+          console.log('Sessão Supabase limpa');
+        } catch (error) {
+          console.log('Erro ao limpar Supabase (pode não ter sessão):', error);
+        }
         
         // Limpar dados do Google
         localStorage.removeItem('user');
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('loginProvider');
+        localStorage.removeItem('userData');
+        console.log('Dados do Google limpos');
         
-        console.log('Logout realizado');
-        window.location.href = 'login.html';
+        // Forçar limpeza completa
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        console.log('Logout completo realizado');
+        
+        // Redirecionar com replace para evitar voltar
+        window.location.replace('login.html');
       };
     });
   </script>
