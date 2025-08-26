@@ -190,9 +190,24 @@ document.addEventListener('DOMContentLoaded', () => {
     projectList.innerHTML = '';
     projects.forEach(project => {
       const li = document.createElement('li');
-      li.textContent = project.name;
-      li.className = project.id === activeProjectId ? 'active-project' : '';
-      li.onclick = () => { selectProject(project.id);}
+      li.className = `project-item ${project.id === activeProjectId ? 'active-project' : ''}`;
+      li.dataset.projectId = project.id;
+      
+      li.innerHTML = `
+        <div class="project-info">
+          <span class="project-name">${project.name}</span>
+          <div class="project-actions">
+            <button class="project-edit-btn" title="Editar projeto" onclick="event.stopPropagation(); editProject('${project.id}')">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button class="project-delete-btn" title="Excluir projeto" onclick="event.stopPropagation(); deleteProject('${project.id}')">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
+        </div>
+      `;
+      
+      li.onclick = () => { selectProject(project.id); }
       projectList.appendChild(li);
     });
   }
@@ -204,6 +219,128 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('view-projects').classList.remove('view-hidden');
     renderTasks();
   }
+
+  // Função para editar projeto
+  window.editProject = function(projectId) {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    // Criar modal de edição
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Editar Projeto</h3>
+          <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-project-form">
+            <div class="form-group">
+              <label for="edit-project-name">Nome do Projeto:</label>
+              <input type="text" id="edit-project-name" value="${project.name}" required />
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Focar no input
+    setTimeout(() => {
+      const input = modal.querySelector('#edit-project-name');
+      input.focus();
+      input.select();
+    }, 100);
+    
+    // Adicionar evento de submit
+    modal.querySelector('#edit-project-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const newName = document.getElementById('edit-project-name').value.trim();
+      
+      if (!newName || newName === project.name) {
+        modal.remove();
+        return;
+      }
+      
+      try {
+        if (currentUser.provider === 'google') {
+          // Para usuários Google, atualizar no localStorage
+          project.name = newName;
+          localStorage.setItem(`projects_${currentUser.email}`, JSON.stringify(projects));
+          showSuccess('Projeto Atualizado', `O projeto foi renomeado para "${newName}"`);
+        } else {
+          // Para usuários Supabase, atualizar no banco
+          const { error } = await supabase.from('projects').update({ name: newName }).eq('id', projectId);
+          if (error) throw error;
+          
+          project.name = newName;
+          showSuccess('Projeto Atualizado', `O projeto foi renomeado para "${newName}"`);
+        }
+        
+        renderProjects();
+        if (activeProjectId === projectId) {
+          document.getElementById('current-project-title').textContent = newName;
+        }
+        modal.remove();
+      } catch (error) {
+        showError('Erro', 'Não foi possível atualizar o projeto. Tente novamente.');
+      }
+    };
+  };
+
+  // Função para deletar projeto
+  window.deleteProject = async function(projectId) {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    // Confirmar exclusão
+    const confirmed = confirm(`Tem certeza que deseja excluir o projeto "${project.name}"?\n\nEsta ação não pode ser desfeita e todas as tarefas associadas serão perdidas.`);
+    if (!confirmed) return;
+    
+    try {
+      if (currentUser.provider === 'google') {
+        // Para usuários Google, remover do localStorage
+        projects = projects.filter(p => p.id !== projectId);
+        localStorage.setItem(`projects_${currentUser.email}`, JSON.stringify(projects));
+        
+        // Remover tarefas associadas
+        tasks = tasks.filter(t => t.projectId !== projectId);
+        localStorage.setItem(`tasks_${currentUser.email}`, JSON.stringify(tasks));
+        
+        showSuccess('Projeto Excluído', `O projeto "${project.name}" foi excluído com sucesso!`);
+      } else {
+        // Para usuários Supabase, remover do banco
+        const { error } = await supabase.from('projects').delete().eq('id', projectId);
+        if (error) throw error;
+        
+        // Remover tarefas associadas
+        await supabase.from('tasks').delete().eq('project_id', projectId);
+        
+        projects = projects.filter(p => p.id !== projectId);
+        tasks = tasks.filter(t => t.projectId !== projectId);
+        
+        showSuccess('Projeto Excluído', `O projeto "${project.name}" foi excluído com sucesso!`);
+      }
+      
+      // Se o projeto excluído estava ativo, limpar seleção
+      if (activeProjectId === projectId) {
+        activeProjectId = null;
+        document.getElementById('current-project-title').textContent = "Selecione um Projeto";
+        document.getElementById('kanban-board').innerHTML = '';
+      }
+      
+      renderProjects();
+      renderTasks();
+    } catch (error) {
+      showError('Erro', 'Não foi possível excluir o projeto. Tente novamente.');
+    }
+  };
   renderProjects();
 
   document.getElementById('project-form').onsubmit = async function(e){

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste - Edição de Projetos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .project-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      border: 1px solid #ddd;
+      margin: 10px 0;
+      border-radius: 6px;
+      background: #f9f9f9;
+    }
+    .project-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .project-name {
+      flex: 1;
+      margin-right: 15px;
+      font-weight: 500;
+    }
+    .project-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .project-edit-btn,
+    .project-delete-btn {
+      background: none;
+      border: none;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+    }
+    .project-edit-btn {
+      color: #3b82f6;
+    }
+    .project-edit-btn:hover {
+      background: rgba(59, 130, 246, 0.1);
+    }
+    .project-delete-btn {
+      color: #ef4444;
+    }
+    .project-delete-btn:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+      font-weight: 500;
+    }
+    .btn-primary {
+      background: #4f46e5;
+      color: white;
+    }
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+    .form-group {
+      margin: 15px 0;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>Teste - Edição de Projetos</h1>
+    <p>Esta página testa a funcionalidade de edição de projetos implementada no sidebar.</p>
+    
+    <h2>Projetos de Exemplo</h2>
+    <div id="projects-list">
+      <!-- Projetos serão inseridos aqui via JavaScript -->
+    </div>
+    
+    <h2>Adicionar Novo Projeto</h2>
+    <form id="add-project-form">
+      <div class="form-group">
+        <label for="project-name">Nome do Projeto:</label>
+        <input type="text" id="project-name" placeholder="Digite o nome do projeto" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Adicionar Projeto</button>
+    </form>
+  </div>
+
+  <script>
+    // Dados de exemplo
+    let projects = [
+      { id: '1', name: 'Projeto de Marketing' },
+      { id: '2', name: 'Desenvolvimento Web' },
+      { id: '3', name: 'Análise de Dados' }
+    ];
+
+    // Função para renderizar projetos
+    function renderProjects() {
+      const projectsList = document.getElementById('projects-list');
+      projectsList.innerHTML = '';
+      
+      projects.forEach(project => {
+        const projectDiv = document.createElement('div');
+        projectDiv.className = 'project-item';
+        projectDiv.innerHTML = `
+          <div class="project-info">
+            <span class="project-name">${project.name}</span>
+            <div class="project-actions">
+              <button class="project-edit-btn" title="Editar projeto" onclick="editProject('${project.id}')">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+              <button class="project-delete-btn" title="Excluir projeto" onclick="deleteProject('${project.id}')">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </div>
+        `;
+        projectsList.appendChild(projectDiv);
+      });
+    }
+
+    // Função para editar projeto
+    function editProject(projectId) {
+      const project = projects.find(p => p.id === projectId);
+      if (!project) return;
+      
+      const newName = prompt('Digite o novo nome do projeto:', project.name);
+      if (newName && newName.trim() && newName !== project.name) {
+        project.name = newName.trim();
+        renderProjects();
+        alert(`Projeto renomeado para "${project.name}"`);
+      }
+    }
+
+    // Função para deletar projeto
+    function deleteProject(projectId) {
+      const project = projects.find(p => p.id === projectId);
+      if (!project) return;
+      
+      const confirmed = confirm(`Tem certeza que deseja excluir o projeto "${project.name}"?`);
+      if (confirmed) {
+        projects = projects.filter(p => p.id !== projectId);
+        renderProjects();
+        alert(`Projeto "${project.name}" excluído com sucesso!`);
+      }
+    }
+
+    // Adicionar novo projeto
+    document.getElementById('add-project-form').onsubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('project-name').value.trim();
+      if (name) {
+        const newProject = {
+          id: Date.now().toString(),
+          name: name
+        };
+        projects.unshift(newProject);
+        renderProjects();
+        document.getElementById('project-name').value = '';
+        alert(`Projeto "${name}" criado com sucesso!`);
+      }
+    };
+
+    // Inicializar
+    renderProjects();
+  </script>
+</body>
+</html>
